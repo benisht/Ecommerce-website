@@ -1,0 +1,30 @@
+// src/firebase.js
+// ─────────────────────────────────────────────────────────────────────────────
+// HOW TO SET UP YOUR FIREBASE PROJECT:
+// 1. Go to https://console.firebase.google.com/
+// 2. Click "Add Project" → name it "lookwalk" → Create
+// 3. Click "Web" (</>)  icon to add a web app → name it → Register
+// 4. Copy your firebaseConfig values below
+// 5. In Firebase Console: Build → Firestore Database → Create Database → Start in test mode
+// 6. In Firebase Console: Build → Storage → Get Started → Start in test mode
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+
+// REPLACE these values with environment variables
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "YOUR_SENDER_ID",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export default app;
