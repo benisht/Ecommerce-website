@@ -163,3 +163,208 @@
     gap: 1rem;
   }
 }
+
+/* Premium Dynamic Offers Slider Section */
+.promo-slider-section {
+  margin: 3rem auto;
+  max-width: calc(1440px - 4rem);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #111827;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.05);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.promo-slider-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(14, 165, 233, 0.15);
+  border-color: var(--accent-color);
+}
+
+.promo-slider-container {
+  position: relative;
+  overflow: hidden;
+  height: 240px;
+  width: 100%;
+}
+
+.promo-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  padding: 0 5rem;
+  text-decoration: none;
+  color: inherit;
+  transform: scale(0.98);
+}
+
+.promo-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+  z-index: 2;
+}
+
+.promo-slide-content {
+  max-width: 650px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  z-index: 3;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.promo-slide-badge {
+  background: rgba(14, 165, 233, 0.2);
+  color: var(--accent-color);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: inline-block;
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+}
+
+.promo-slide-title {
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.promo-slide-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.discounted-price-glowing {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0ea5e9;
+  text-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
+}
+
+.original-price-crossed {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+}
+
+.promo-slide-cta {
+  padding: 0.5rem 1.5rem !important;
+  font-size: 0.8rem !important;
+  border-radius: 30px !important;
+  margin-top: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Arrows Navigation */
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+
+.slider-arrow:hover {
+  background: var(--accent-color);
+  color: #000000;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+}
+
+.prev-arrow {
+  left: 1.5rem;
+}
+
+.next-arrow {
+  right: 1.5rem;
+}
+
+/* Bullets Pagination */
+.slider-dots {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.slider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.slider-dot.active {
+  background: var(--accent-color);
+  width: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .promo-slider-container {
+    height: 220px;
+  }
+  
+  .promo-slide {
+    padding: 0 2.5rem;
+  }
+  
+  .slider-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .prev-arrow {
+    left: 0.8rem;
+  }
+  
+  .next-arrow {
+    right: 0.8rem;
+  }
+}

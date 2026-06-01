@@ -32,6 +32,7 @@ const TrackOrder = () => {
         setError('Order not found. Please check your Order ID.');
       }
     } catch (err) {
+      console.error('Tracking order failed:', err);
       setError('Failed to fetch order status. Please try again later.');
     } finally {
       setLoading(false);
@@ -97,7 +98,7 @@ const TrackOrder = () => {
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#10b98122', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
                     <CheckCircle size={20} />
                   </div>
-                  <div style={{ flex: 1, width: '2px', background: order.paymentStatus === 'received' ? '#10b981' : 'var(--glass-border)', margin: '5px 0' }}></div>
+                  <div style={{ flex: 1, width: '2px', background: order.payment_status === 'received' ? '#10b981' : 'var(--glass-border)', margin: '5px 0' }}></div>
                 </div>
                 <div>
                   <h4 style={{ margin: 0 }}>Order Received</h4>

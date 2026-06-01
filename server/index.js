@@ -31,7 +31,7 @@ app.use((req, res, next) => {
 app.get('/api/products', async (req, res) => {
   const { limit, offset } = req.query;
   try {
-    let sql = 'SELECT id, name, price, category, image, in_stock, created_at, sizes, variants FROM products ORDER BY created_at DESC';
+    let sql = 'SELECT id, name, price, category, image, in_stock, created_at, sizes, variants, discount_percent FROM products ORDER BY created_at DESC';
     const params = [];
     if (limit) {
       sql += ` LIMIT $${params.length + 1}`;

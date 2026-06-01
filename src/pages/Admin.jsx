@@ -1,7 +1,7 @@
 // src/pages/Admin.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  getPaymentQR, setPaymentQR, deletePaymentQR
+  getPaymentQR, setPaymentQR, deletePaymentQR, getProducts
 } from '../data/dataManager';
 import {
   fetchOrders, updateOrderStatus, deleteOrder,
@@ -109,6 +109,15 @@ const Admin = () => {
     setQueriesLoading(false);
   };
 
+  async function loadExtraSettings() {
+    try {
+      const b = await fetchSettings('home_banner');
+      if (b) setBanner(b);
+      const s = await fetchSettings('std_shipping_rate');
+      if (s) setStdShipping(Number(s));
+    } catch (err) { console.error('Error loading extra settings:', err); }
+  }
+
   useEffect(() => {
     if (!isAuthenticated) return;
     loadProducts();
@@ -138,6 +147,7 @@ const Admin = () => {
     if (!isAuthenticated) return;
     if (activeTab === 'orders' && orders.length === 0) loadOrders();
     if (activeTab === 'queries' && queries.length === 0) loadQueries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isAuthenticated]);
 
   // Real-time polling for new orders
@@ -152,8 +162,8 @@ const Admin = () => {
         }
         setOrders(fetched);
         setLastOrderCount(fetched.length);
-      } catch (err) {
-        console.warn('Polling failed');
+      } catch (error) {
+        console.warn('Polling failed:', error);
       }
     };
     const id = setInterval(poll, 10000); // every 10s
@@ -247,14 +257,6 @@ const Admin = () => {
   };
 
 
-  const loadExtraSettings = async () => {
-    try {
-      const b = await fetchSettings('home_banner');
-      if (b) setBanner(b);
-      const s = await fetchSettings('std_shipping_rate');
-      if (s) setStdShipping(Number(s));
-    } catch (err) { console.error('Error loading extra settings:', err); }
-  };
 
   const saveBanner = async () => {
     try {
@@ -406,7 +408,8 @@ const Admin = () => {
     try {
       await updateOrderStatus(orderId, field, value);
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, [field]: value } : o));
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to update order status:', error);
       alert('Failed to update. Check backend connection.');
     }
   };
@@ -438,7 +441,6 @@ const Admin = () => {
   const distinctCategories = ['Hoodies', 'Watches', 'Glasses', 'Shirts', ...new Set(products.map(p => p.category))];
   const unreadCount = queries.filter(q => q.status === 'unread').length;
   const pendingPayments = orders.filter(o => o.payment_status === 'pending').length;
-  const pendingDeliveries = orders.filter(o => o.delivery_status !== 'delivered').length;
 
   // ── LOGIN SCREEN ──────────────────────────────────────────────────────────
   if (!isAuthenticated) {
@@ -610,7 +612,7 @@ const Admin = () => {
                              <input 
                                type="text" 
                                placeholder="Color Name (e.g. Royal Blue)" 
-                               value={v.color} 
+                                 value={v.color} 
                                onChange={(e) => handleVariantChange(idx, 'color', e.target.value)}
                                className="futuristic-input-small"
                                style={{ marginBottom: '0.5rem' }}
@@ -645,6 +647,59 @@ const Admin = () => {
                    <input type="checkbox" name="in_stock" checked={formData.in_stock} onChange={handleInputChange} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-color)' }} />
                    <label style={{ margin: 0 }}>Item is In Stock</label>
                  </div>
+
+                  {/* Discount Module */}
+                  <div style={{
+                    padding: '1rem 1.2rem',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(245,158,11,0.3)',
+                    background: 'rgba(245,158,11,0.06)',
+                    marginBottom: '0.5rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                      <span style={{ fontSize: '1.1rem' }}>🏷️</span>
+                      <label style={{ margin: 0, color: '#f59e0b', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                        Discount
+                      </label>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ flex: 1, position: 'relative' }}>
+                        <input
+                          type="number"
+                          name="discount_percent"
+                          min="0"
+                          max="90"
+                          step="1"
+                          value={formData.discount_percent}
+                          onChange={handleInputChange}
+                          className="futuristic-input"
+                          placeholder="0"
+                          style={{ paddingRight: '2.4rem', borderColor: formData.discount_percent > 0 ? 'rgba(245,158,11,0.6)' : '' }}
+                        />
+                        <span style={{
+                          position: 'absolute', right: '0.8rem', top: '50%', transform: 'translateY(-50%)',
+                          color: '#f59e0b', fontWeight: 700, fontSize: '1rem', pointerEvents: 'none'
+                        }}>%</span>
+                      </div>
+                      <div style={{ minWidth: '110px', textAlign: 'center' }}>
+                        {formData.discount_percent > 0 ? (
+                          <div style={{ background: 'rgba(245,158,11,0.12)', borderRadius: '8px', padding: '6px 10px' }}>
+                            <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Sale Price</div>
+                            <div style={{ color: '#f59e0b', fontWeight: 700, fontSize: '1rem' }}>
+                              {`₹${formData.price ? (Number(formData.price) * (1 - formData.discount_percent / 100)).toFixed(0) : '—'}`}
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>No discount</span>
+                        )}
+                      </div>
+                    </div>
+                    {formData.discount_percent > 0 && (
+                      <p style={{ margin: '0.6rem 0 0', fontSize: '0.74rem', color: 'rgba(245,158,11,0.75)' }}>
+                        ✓ This product will appear in the Offers slider on the homepage.
+                      </p>
+                    )}
+                  </div>
                 <div className="admin-actions">
                   {isEditing && <button type="button" className="btn-secondary" onClick={cancelEdit}>Cancel</button>}
                   <button type="submit" className="btn-primary flex-center gap-2">
@@ -662,7 +717,7 @@ const Admin = () => {
               {productLoading ? <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading...</p> :
                 products.length === 0 ? <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No products yet.</p> : (
                   <table className="inventory-table">
-                    <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Discount</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                       {products.map(p => (
                         <tr key={p.id}>
@@ -670,6 +725,12 @@ const Admin = () => {
                           <td className="font-weight-600">{p.name}</td>
                           <td><span className="badge category-badge">{p.category}</span></td>
                           <td className="text-accent font-weight-600">₹{Number(p.price).toFixed(2)}</td>
+                          <td>
+                            {p.discount_percent > 0
+                              ? <span style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', border: '1px solid rgba(245,158,11,0.3)' }}>🏷️ {p.discount_percent}% OFF</span>
+                              : <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>—</span>
+                            }
+                          </td>
                           <td>{p.in_stock === false ? <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>Out of Stock</span> : <span style={{ color: '#10b981', fontSize: '0.85rem' }}>In Stock</span>}</td>
                           <td>
                             <div className="table-actions">

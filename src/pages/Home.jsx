@@ -1,23 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
-import { fetchProducts } from '../data/apiService';
+import { fetchProducts, fetchSettings } from '../data/apiService';
 import './Home.css';
 
 const Home = () => {
   const [heroBg, setHeroBg] = useState('/hero-bg.png');
   const [ethosImg, setEthosImg] = useState('/hero-bg.png');
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [discountedProducts, setDiscountedProducts] = useState([]);
+  const [activeSlide, setActiveSlide] = useState(0);
   const [banner, setBanner] = useState({ image: '', text: '', active: false });
+
+  // Autoplay slider logic
+  useEffect(() => {
+    if (discountedProducts.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveSlide(prev => (prev === discountedProducts.length - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [discountedProducts]);
+
   useEffect(() => {
     const loadFeatured = async () => {
       try {
         const products = await fetchProducts();
         if (Array.isArray(products)) {
           setFeaturedProducts(products.slice(0, 4));
+          const discounted = products.filter(p => p.discount_percent > 0);
+          setDiscountedProducts(discounted);
         } else {
           console.error('Expected array of products, got:', products);
           setFeaturedProducts([]);
+          setDiscountedProducts([]);
         }
       } catch (err) {
         console.error('Failed to load featured products:', err);
@@ -33,7 +48,6 @@ const Home = () => {
 
     const loadExtra = async () => {
       try {
-        const fetchSettings = (await import('../data/apiService')).fetchSettings;
         const b = await fetchSettings('home_banner');
         if (b) setBanner(b);
       } catch (err) { console.error('Failed to load banner:', err); }
@@ -48,44 +62,6 @@ const Home = () => {
 
   return (
     <div className="page-wrapper home-page">
-      {/* Dynamic News/Sale Banner */}
-      {banner.active && (
-        <div className="news-banner glass-panel" style={{ 
-          margin: '1.5rem 2rem 0',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden',
-          borderRadius: '12px',
-          border: '2px solid #ff3b30',
-          boxShadow: '0 0 30px rgba(255, 59, 48, 0.4)',
-          zIndex: 9999,
-          position: 'relative',
-          height: '60px'
-        }}>
-          {banner.image && (
-            <div className="banner-image" style={{ 
-              width: '100px', 
-              height: '100%', 
-              flexShrink: 0,
-              background: `url(${banner.image}) center/cover`
-            }}></div>
-          )}
-          <div className="banner-text" style={{ 
-            padding: '0 1.5rem', 
-            flex: 1, 
-            fontSize: '1rem', 
-            fontWeight: '600',
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            color: 'var(--text-primary)'
-          }}>
-            <marquee behavior="scroll" direction="left" scrollamount="6">
-              {banner.text}
-            </marquee>
-          </div>
-        </div>
-      )}
-
       {/* Hero Section */}
       <section className="hero-section" style={{ backgroundImage: `url(${heroBg})` }}>
         <div className="hero-overlay"></div>
@@ -103,6 +79,97 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Dynamic Offers Slider Section */}
+      {(discountedProducts.length > 0 || banner.active) && (
+        <section className="promo-slider-section glass-panel container">
+          <div className="promo-slider-container">
+            {discountedProducts.length > 0 ? (
+              discountedProducts.map((product, idx) => (
+                <Link
+                  key={product.id}
+                  to={`/products/${product.id}`}
+                  className={`promo-slide ${idx === activeSlide ? 'active' : ''}`}
+                  style={{
+                    backgroundImage: `linear-gradient(90deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.6) 50%, rgba(17, 24, 39, 0.2) 100%), url(${product.image})`
+                  }}
+                >
+                  <div className="promo-slide-content">
+                    <span className="promo-slide-badge animate-pulse">
+                      -{product.discount_percent}% OFF SPECIAL DEAL
+                    </span>
+                    <h2 className="promo-slide-title">{product.name}</h2>
+                    <div className="promo-slide-price">
+                      <span className="discounted-price-glowing">₹{(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}</span>
+                      <span className="original-price-crossed">₹{Number(product.price).toFixed(2)}</span>
+                    </div>
+                    <button className="btn-primary btn-small promo-slide-cta">
+                      Shop Now &rarr;
+                    </button>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              /* Fallback single administrative banner */
+              <div
+                className="promo-slide active fallback-slide"
+                style={{
+                  backgroundImage: banner.image ? `linear-gradient(90deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.6) 50%, rgba(17, 24, 39, 0.2) 100%), url(${banner.image})` : 'none',
+                  background: !banner.image ? 'radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.1) 0%, transparent 65%), var(--bg-secondary)' : undefined
+                }}
+              >
+                <div className="promo-slide-content">
+                  <span className="promo-slide-badge">SPECIAL ANNOUNCEMENT</span>
+                  <h2 className="promo-slide-title">{banner.text}</h2>
+                  <Link to="/products" className="btn-primary btn-small promo-slide-cta">
+                    Discover Collection
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Slider controls (only if more than 1 discounted product) */}
+            {discountedProducts.length > 1 && (
+              <>
+                <button
+                  className="slider-arrow prev-arrow"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveSlide(prev => (prev === 0 ? discountedProducts.length - 1 : prev - 1));
+                  }}
+                >
+                  &#10094;
+                </button>
+                <button
+                  className="slider-arrow next-arrow"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveSlide(prev => (prev === discountedProducts.length - 1 ? 0 : prev + 1));
+                  }}
+                >
+                  &#10095;
+                </button>
+
+                <div className="slider-dots">
+                  {discountedProducts.map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`slider-dot ${idx === activeSlide ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActiveSlide(idx);
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Featured Products */}
       <section className="featured-section container">

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { CreditCard, Truck, ShieldCheck, Plus, Minus, Trash2, QrCode, Loader } from 'lucide-react';
 import { getCartItems, clearCart, updateCartItemQuantity, removeCartItem } from '../data/cartManager';
 import { getPaymentQR } from '../data/dataManager';
-import { placeOrder } from '../data/apiService';
+import { placeOrder, fetchSettings } from '../data/apiService';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -37,7 +37,6 @@ const Checkout = () => {
     // Fetch standard shipping rate from settings
     const loadStdRate = async () => {
       try {
-        const fetchSettings = (await import('../data/apiService')).fetchSettings;
         const rate = await fetchSettings('std_shipping_rate');
         if (rate) setStdRate(Number(rate));
       } catch (err) { console.error('Failed to load shipping rate settings:', err); }

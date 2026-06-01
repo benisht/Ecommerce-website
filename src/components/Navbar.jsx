@@ -9,11 +9,10 @@ import './Navbar.css';
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  const [cartCount, setCartCount] = useState(() => getCartCount());
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
 
   const searchInputRef = useRef(null);
@@ -38,7 +37,6 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    setCartCount(getCartCount());
     const handleCartUpdate = () => setCartCount(getCartCount());
     window.addEventListener('cartUpdated', handleCartUpdate);
     return () => window.removeEventListener('cartUpdated', handleCartUpdate);
@@ -50,12 +48,14 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu on route change
+  // Close mobile menu on route change safely
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setSearchOpen(false);
-    setSearchQuery('');
-    setSearchResults([]);
+    const timer = setTimeout(() => {
+      setIsMobileMenuOpen(false);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }, 0);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   // Focus input when search opens
@@ -65,29 +65,12 @@ const Navbar = () => {
     }
   }, [searchOpen]);
 
-  // Filter products as user types
-  useEffect(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) {
-      setSearchResults([]);
-      return;
-    }
-    const results = (allProducts || []).filter(
-      p =>
-        (p.name?.toLowerCase() || '').includes(q) ||
-        (p.category?.toLowerCase() || '').includes(q) ||
-        (p.description?.toLowerCase() || '').includes(q)
-    );
-    setSearchResults(results.slice(0, 6));
-  }, [searchQuery, allProducts]);
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setSearchOpen(false);
         setSearchQuery('');
-        setSearchResults([]);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -100,7 +83,6 @@ const Navbar = () => {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
       setSearchQuery('');
-      setSearchResults([]);
     }
   };
 
@@ -108,8 +90,18 @@ const Navbar = () => {
     navigate(`/products/${id}`);
     setSearchOpen(false);
     setSearchQuery('');
-    setSearchResults([]);
   };
+
+  // Derive search results synchronously during render (React-recommended pattern)
+  const q = searchQuery.trim().toLowerCase();
+  const searchResults = q
+    ? (allProducts || []).filter(
+        p =>
+          (p.name?.toLowerCase() || '').includes(q) ||
+          (p.category?.toLowerCase() || '').includes(q) ||
+          (p.description?.toLowerCase() || '').includes(q)
+      ).slice(0, 6)
+    : [];
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -164,7 +156,6 @@ const Navbar = () => {
                 setSearchOpen((prev) => !prev);
                 if (searchOpen) {
                   setSearchQuery('');
-                  setSearchResults([]);
                 }
               }}
             >

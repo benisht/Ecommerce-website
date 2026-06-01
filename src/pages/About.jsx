@@ -38,7 +38,7 @@ const About = () => {
             Founded in 2026, our store was built on a simple idea—to make fashion more personal, comfortable, and accessible for everyone. What started as a small neighborhood shop has grown into a space where style meets connection, offering carefully curated collections that reflect both modern trends and everyday ease.
           </p>
           <p>
-            The store was founded by Johnson and Nancy, whose deep passion for fashion and strong sense of community brought this vision to life. What began as their shared dream has grown into a welcoming space where style feels personal and meaningful. Today, they continue to lead the store with dedication, supported by their niece and a group of young, fashion-forward minds who bring fresh perspectives and creativity. This blend of experience and youthful energy allows us to constantly evolve, offering styles that are not only trendy but also relatable, ensuring every customer finds something that truly reflects their individuality.
+            The store was founded by Johnson and Nancy, whose deep passion for fashion and strong sense of community brought this vision to life. What began as their shared dream has grown into a welcoming space where style feels personal and meaningful. Today, they continue to lead the store with dedication
           </p>
 
           <div className="values-grid">

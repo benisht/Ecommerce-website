@@ -105,9 +105,8 @@ const ProductDetail = () => {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginTop: '0.5rem' }}>
               {product.discount_percent > 0 ? (
                 <>
-                  <p className="detail-price" style={{ color: '#ff3b30' }}>₹{(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}</p>
+                  <p className="detail-price">{product.discount_percent > 0 ? `₹${(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}` : `₹${Number(product.price).toFixed(2)}`}</p>
                   <p className="original-price" style={{ textDecoration: 'line-through', color: 'var(--text-secondary)', fontSize: '1.2rem' }}>₹{Number(product.price).toFixed(2)}</p>
-                  <span className="sale-badge" style={{ background: '#ff3b30', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.9rem', fontWeight: 'bold' }}>-{product.discount_percent}% OFF</span>
                 </>
               ) : (
                 <p className="detail-price">₹{Number(product.price).toFixed(2)}</p>
