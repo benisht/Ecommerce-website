@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { fetchSettings } from '../data/apiService';
+import { setSEOTags } from '../utils/seo';
 import './About.css';
 
 const About = () => {
@@ -6,17 +8,24 @@ const About = () => {
   const [about2, setAbout2] = useState('/hero-bg.png');
 
   useEffect(() => {
-    const loadImages = () => {
-      const savedAbout1 = localStorage.getItem('lookwalk_about_img_1');
-      if (savedAbout1) setAbout1(savedAbout1);
+    // Set About Page SEO Tags
+    setSEOTags(
+      'Our Story',
+      'About LOOKWALK - Founded by Johnson and Nancy in 2026. A neighborhood shop where personal style meets comfort, trust, and premium fashion.'
+    );
 
-      const savedAbout2 = localStorage.getItem('lookwalk_about_img_2');
-      if (savedAbout2) setAbout2(savedAbout2);
+    const loadImagesFromDB = async () => {
+      try {
+        const a1 = await fetchSettings('lookwalk_about_img_1');
+        if (a1) setAbout1(a1);
+        const a2 = await fetchSettings('lookwalk_about_img_2');
+        if (a2) setAbout2(a2);
+      } catch (err) {
+        console.error('Failed to load about settings:', err);
+      }
     };
 
-    loadImages(); // run on mount
-    window.addEventListener('appearanceUpdated', loadImages);
-    return () => window.removeEventListener('appearanceUpdated', loadImages);
+    loadImagesFromDB();
   }, []);
 
   return (
@@ -28,8 +37,8 @@ const About = () => {
 
       <div className="about-content">
         <div className="about-image-grid">
-          <img src={about1} alt="Futuristic Studio" className="glass-panel" />
-          <img src={about2} alt="Materials" className="glass-panel" style={{ marginTop: '2rem' }} />
+          <img src={about1} alt="Futuristic Studio" className="glass-panel" loading="lazy" />
+          <img src={about2} alt="Materials" className="glass-panel" style={{ marginTop: '2rem' }} loading="lazy" />
         </div>
 
         <div className="about-text glass-panel">

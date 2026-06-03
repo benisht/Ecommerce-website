@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { fetchProducts, fetchSettings } from '../data/apiService';
+import { setSEOTags } from '../utils/seo';
 import './Home.css';
 
 const Home = () => {
@@ -22,6 +23,12 @@ const Home = () => {
   }, [discountedProducts]);
 
   useEffect(() => {
+    // Set Home SEO Tags
+    setSEOTags(
+      'Home',
+      'LOOKWALK - Trending cutting-edge streetwear, hoodies, watches, glasses and modern fashion apparel. High quality items delivered across India.'
+    );
+
     const loadFeatured = async () => {
       try {
         const products = await fetchProducts();
@@ -39,25 +46,21 @@ const Home = () => {
       }
     };
     
-    const loadImages = () => {
-      const savedHero = localStorage.getItem('lookwalk_hero_bg');
-      if (savedHero) setHeroBg(savedHero);
-      const savedEthos = localStorage.getItem('lookwalk_ethos_img');
-      if (savedEthos) setEthosImg(savedEthos);
-    };
-
-    const loadExtra = async () => {
+    const loadDBSettings = async () => {
       try {
+        const h = await fetchSettings('lookwalk_hero_bg');
+        if (h) setHeroBg(h);
+        const e = await fetchSettings('lookwalk_ethos_img');
+        if (e) setEthosImg(e);
         const b = await fetchSettings('home_banner');
         if (b) setBanner(b);
-      } catch (err) { console.error('Failed to load banner:', err); }
+      } catch (err) { 
+        console.error('Failed to load settings:', err); 
+      }
     };
 
     loadFeatured();
-    loadImages();
-    loadExtra();
-    window.addEventListener('appearanceUpdated', loadImages);
-    return () => window.removeEventListener('appearanceUpdated', loadImages);
+    loadDBSettings();
   }, []);
 
   return (
@@ -196,7 +199,7 @@ const Home = () => {
             <Link to="/about" className="btn-secondary" style={{ marginTop: '1rem' }}>Read Our Story</Link>
           </div>
           <div className="ethos-image-container">
-            <img src={ethosImg} alt="Techwear Fashion" className="ethos-image" />
+            <img src={ethosImg} alt="Techwear Fashion" className="ethos-image" loading="lazy" />
           </div>
         </div>
       </section>

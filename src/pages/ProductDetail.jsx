@@ -9,12 +9,12 @@ import './ProductDetail.css';
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  console.info('ProductDetail ID:', id);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [size, setSize] = useState('');
   const [color, setColor] = useState('');
   const [selectedStock, setSelectedStock] = useState(0);
+  const [activeImage, setActiveImage] = useState('');
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -22,6 +22,8 @@ const ProductDetail = () => {
       try {
         const data = await fetchProductById(id);
         setProduct(data);
+        setActiveImage(data.image); // Set default active main image
+        
         // Default selection
         if (data.sizes && data.sizes.length > 0) setSize(data.sizes[0]);
         else setSize('Standard');
@@ -45,6 +47,38 @@ const ProductDetail = () => {
     loadProduct();
   }, [id]);
 
+  // Inject Structured Schema Markup for SEO
+  useEffect(() => {
+    if (!product) return;
+    
+    const schema = {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": product.name,
+      "image": product.image,
+      "description": product.description,
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "INR",
+        "price": product.discount_percent > 0 
+          ? (Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)
+          : Number(product.price).toFixed(2),
+        "availability": product.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+      }
+    };
+    
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'jsonld-product';
+    script.innerHTML = JSON.stringify(schema);
+    document.head.appendChild(script);
+    
+    return () => {
+      const el = document.getElementById('jsonld-product');
+      if (el) el.remove();
+    };
+  }, [product]);
+
   if (loading) {
     return (
       <div className="page-wrapper container flex-center" style={{ minHeight: '60vh' }}>
@@ -64,9 +98,6 @@ const ProductDetail = () => {
 
   const productSizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['Standard'];
   const productVariants = product.variants && product.variants.length > 0 ? product.variants : [];
-  const displayImage = color && productVariants.find(v => v.color === color)?.image 
-    ? productVariants.find(v => v.color === color).image 
-    : product.image;
 
   const handleAddToCart = () => {
     if (product.in_stock === false || selectedStock <= 0) {
@@ -87,17 +118,57 @@ const ProductDetail = () => {
 
   return (
     <div className="page-wrapper container animate-fade-in-up">
-      {console.info('Rendering ProductDetail:', product?.name)}
       <button className="back-btn" onClick={() => navigate(-1)}>
         <ArrowLeft size={20} />
         <span>Back</span>
       </button>
 
       <div className="product-detail-layout">
-        <div className="product-detail-image-container glass-panel">
-          <img src={displayImage} alt={product.name} className="product-detail-image" />
+        {/* Left Side: Product Image & Gallery */}
+        <div className="product-detail-image-container glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <img src={activeImage} alt={product.name} className="product-detail-image" loading="lazy" />
+          
+          {/* Thumbnail Gallery Strip */}
+          {((product.images && product.images.length > 0) || product.image) && (
+            <div className="thumbnail-strip" style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', overflowX: 'auto', padding: '0.5rem 0' }}>
+              <img 
+                src={product.image} 
+                alt="Main" 
+                style={{ 
+                  width: '55px', 
+                  height: '55px', 
+                  objectFit: 'cover', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer', 
+                  border: (activeImage === product.image) ? '2px solid var(--accent-color)' : '1px solid var(--glass-border)',
+                  opacity: (activeImage === product.image) ? 1 : 0.5 
+                }}
+                onClick={() => setActiveImage(product.image)}
+                loading="lazy"
+              />
+              {product.images?.map((img, i) => (
+                <img 
+                  key={i}
+                  src={img} 
+                  alt={`Extra ${i+1}`} 
+                  style={{ 
+                    width: '55px', 
+                    height: '55px', 
+                    objectFit: 'cover', 
+                    borderRadius: '6px', 
+                    cursor: 'pointer', 
+                    border: (activeImage === img) ? '2px solid var(--accent-color)' : '1px solid var(--glass-border)',
+                    opacity: (activeImage === img) ? 1 : 0.5 
+                  }}
+                  onClick={() => setActiveImage(img)}
+                  loading="lazy"
+                />
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Right Side: Product Details */}
         <div className="product-detail-info">
           <div className="detail-header">
             <span className="detail-category">{product.category}</span>
@@ -105,7 +176,7 @@ const ProductDetail = () => {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginTop: '0.5rem' }}>
               {product.discount_percent > 0 ? (
                 <>
-                  <p className="detail-price">{product.discount_percent > 0 ? `₹${(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}` : `₹${Number(product.price).toFixed(2)}`}</p>
+                  <p className="detail-price">₹{(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}</p>
                   <p className="original-price" style={{ textDecoration: 'line-through', color: 'var(--text-secondary)', fontSize: '1.2rem' }}>₹{Number(product.price).toFixed(2)}</p>
                 </>
               ) : (
@@ -150,6 +221,10 @@ const ProductDetail = () => {
                       style={{ width: 'auto', padding: '0 1rem', borderRadius: '20px' }}
                       onClick={() => {
                         setColor(v.color);
+                        // Swap active image to variant image if available
+                        if (v.image) {
+                          setActiveImage(v.image);
+                        }
                         const sStock = typeof v.stock === 'object' ? (v.stock[size] || 0) : (v.stock || 0);
                         setSelectedStock(sStock);
                       }}
