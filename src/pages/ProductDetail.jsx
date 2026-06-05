@@ -14,6 +14,7 @@ const ProductDetail = () => {
   const [size, setSize] = useState('');
   const [color, setColor] = useState('');
   const [selectedStock, setSelectedStock] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState('');
 
   useEffect(() => {
@@ -110,7 +111,9 @@ const ProductDetail = () => {
       alert('Please select a color first.');
       return;
     }
-    addToCart(product, size, color, 1);
+    // Ensure quantity does not exceed available stock
+    const finalQty = Math.min(quantity, selectedStock);
+    addToCart(product, size, color, finalQty, selectedStock);
     alert(`${product.name} added to cart!`);
   };
 
@@ -226,6 +229,30 @@ const ProductDetail = () => {
                 </div>
               </div>
             )}
+
+            <div className="quantity-selector" style={{ marginTop: '2rem' }}>
+              <h3>Quantity</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button
+                  type="button"
+                  className="size-btn"
+                  onClick={() => {
+                    const newQty = Math.max(1, quantity - 1);
+                    setQuantity(newQty);
+                  }}
+                >-</button>
+                <span className="size-btn" style={{ width: 'auto', padding: '0 0.5rem' }}>{quantity}</span>
+                <button
+                  type="button"
+                  className="size-btn"
+                  onClick={() => {
+                    const newQty = Math.min(selectedStock, quantity + 1);
+                    setQuantity(newQty);
+                  }}
+                >+</button>
+              </div>
+              <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Available: {selectedStock}</p>
+            </div>
 
             <button
               className="btn-primary add-to-cart-btn"
