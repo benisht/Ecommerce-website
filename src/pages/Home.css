@@ -239,13 +239,8 @@
 }
 
 /* Removed duplicate .product-image-container rule; styling is handled in ProductCard.css */
-  position: relative;
-  width: 100%;
-  /* Default aspect ratio for desktop */
-  aspect-ratio: 3/4;
-  overflow: hidden;
-  background-color: var(--bg-tertiary);
-}
+
+
 /* Mobile adjustments */
 @media (max-width: 600px) {
   .product-image-container {
