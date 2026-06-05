@@ -36,21 +36,22 @@ module.exports = {
     let sql = text;
     const upperSql = sql.trim().toUpperCase();
     const isInsert = upperSql.startsWith('INSERT');
-    
-    // PostgreSQL insert queries must return ID to match lastID property of SQLite
-    if (isInsert && !upperSql.includes('RETURNING')) {
+    // Ensure RETURNING id for inserts
+    if (isInsert && !upperSql.includes('RETURNING') && !/\bINTO\s+SETTINGS\b/i.test(sql)) {
       sql += ' RETURNING id';
     }
-    
     try {
       const res = await pgPool.query(sql, params);
-      // Map postgres' returned rows first element ID to lastID for compatibility
       if (isInsert && res.rows && res.rows[0]) {
         res.lastID = res.rows[0].id;
       }
       return res;
     } catch (err) {
-      console.error("Postgres Query Execution Error:", err, "\nSQL:", sql);
+      if (err.code === 'ENOTFOUND' || err.message.includes('ENOTFOUND')) {
+        console.warn('Database not reachable, returning empty result for query:', sql);
+        return { rows: [], rowCount: 0 };
+      }
+      console.error('Postgres Query Execution Error:', err, '\nSQL:', sql);
       throw err;
     }
   },

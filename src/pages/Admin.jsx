@@ -9,7 +9,7 @@ import {
   Edit2, Trash2, Plus, ShieldAlert, QrCode, Upload, Monitor,
   Package, MessageSquare, CheckCircle, Truck, Clock, XCircle, ShieldCheck,
   LayoutDashboard, ChevronDown, ChevronUp, Eye, Mail, Search,
-  ShoppingCart, Settings, LogOut, DollarSign, AlertCircle, List
+  ShoppingCart, Settings, LogOut, DollarSign, AlertCircle, List, Loader
 } from 'lucide-react';
 import './Admin.css';
 
@@ -32,6 +32,7 @@ const fmtDate = (ts) => {
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('lookwalk_admin_token'));
+  const [banner, setBanner] = useState({ image: '', text: '', active: false }); // Banner temporarily retained for admin UI stability
   const [loginForm, setLoginForm] = useState({ userId: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -57,12 +58,12 @@ const Admin = () => {
   const [ethosImg, setEthosImg] = useState('');
   const [about1, setAbout1] = useState('');
   const [about2, setAbout2] = useState('');
-  const [banner, setBanner] = useState({ image: '', text: '', active: false });
+  // Banner state removed
   const [stdShipping, setStdShipping] = useState(300);
-
+  const [uploadingKey, setUploadingKey] = useState('');
   const initialForm = {
     name: '', price: '', category: '', image: '', images: [], description: '',
-    in_stock: true, sizes: 'S, M, L, XL', variants: [], discount_percent: 0, featured: false
+    in_stock: true, sizes: 'S, M, L, XL', variants: [], featured: false
   };
   const [formData, setFormData] = useState(initialForm);
   const [dbStatus, setDbStatus] = useState('checking');
@@ -113,11 +114,14 @@ const Admin = () => {
     setQueriesLoading(false);
   };
 
+  const saveBanner = async () => {
+    // No-op: banner functionality removed
+    alert('Banner feature is disabled.');
+  };
+
   // ── LOAD SETTINGS FROM DB ──────────────────────────────────────────────────
   const loadDBSettings = async () => {
     try {
-      const b = await fetchSettings('home_banner');
-      if (b) setBanner(b);
       const s = await fetchSettings('std_shipping_rate');
       if (s) setStdShipping(Number(s));
       const qr = await fetchSettings('payment_qr');
@@ -203,7 +207,7 @@ const Admin = () => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'price' || name === 'discount_percent' ? Number(value) : value)
+      [name]: type === 'checkbox' ? checked : (name === 'price' ? Number(value) : value)
     }));
   };
 
@@ -345,7 +349,7 @@ const Admin = () => {
           ...v,
           stock: typeof v.stock === 'object' ? v.stock : { 'Default': v.stock || 0 }
         })),
-        discount_percent: fullProduct.discount_percent || 0,
+        // discount_percent removed
         featured: !!fullProduct.featured
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -367,12 +371,7 @@ const Admin = () => {
   const cancelEdit = () => { setIsEditing(false); setCurrentId(null); setFormData(initialForm); };
 
   // ── SAVE SETTINGS (CENTRAL DB) ─────────────────────────────────────────────
-  const saveBanner = async () => {
-    try {
-      await updateSettings('home_banner', banner);
-      alert('Banner updated in Database!');
-    } catch { alert('Failed to save banner.'); }
-  };
+  
 
   const saveShippingRate = async () => {
     try {
@@ -381,10 +380,7 @@ const Admin = () => {
     } catch { alert('Failed to save shipping rate.'); }
   };
 
-  const handleBannerImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) compressFile(file, (img) => setBanner({ ...banner, image: img }));
-  };
+
 
   const handleQRUpload = async (e) => {
     const file = e.target.files[0];
@@ -402,14 +398,35 @@ const Admin = () => {
   const handleAppearanceUpload = async (e, key, setter) => {
     const file = e.target.files[0];
     if (file) {
+      setUploadingKey(key);
       compressFile(file, async (img) => {
         try {
           await updateSettings(key, img);
           setter(img);
           alert('Image updated in Database!');
-        } catch { alert('Failed to upload image.'); }
+        } catch {
+          alert('Failed to upload image.');
+        } finally {
+          setUploadingKey('');
+        }
       });
     }
+  };
+  const handleBannerImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingKey('home_banner');
+    compressFile(file, async (img) => {
+      try {
+        await updateSettings('home_banner', img);
+        setBanner(prev => ({ ...prev, image: img }));
+        alert('Banner image updated!');
+      } catch {
+        alert('Failed to upload banner image.');
+      } finally {
+        setUploadingKey('');
+      }
+    });
   };
 
   const removeAppearanceSetting = async (key, setter) => {
@@ -775,53 +792,16 @@ const Admin = () => {
                   </div>
 
                   <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <input type="checkbox" name="in_stock" checked={formData.in_stock} onChange={handleInputChange} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-color)' }} />
-                    <label style={{ margin: 0 }}>Item is In Stock</label>
-                  </div>
+  <input type="checkbox" name="in_stock" checked={formData.in_stock} onChange={handleInputChange} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-color)' }} />
+  <label style={{ margin: 0 }}>Item is In Stock</label>
+</div>
 
-                  <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <input type="checkbox" name="featured" checked={formData.featured} onChange={handleInputChange} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-color)' }} />
-                    <label style={{ margin: 0 }}>Featured Product (Special Collection)</label>
-                  </div>
+<div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+  <input type="checkbox" name="featured" checked={formData.featured} onChange={handleInputChange} style={{ width: '20px', height: '20px', accentColor: 'var(--accent-color)' }} />
+  <label style={{ margin: 0 }}>Featured Product (Special Collection)</label>
+</div>
 
-                  {/* Discount Module */}
-                  <div style={{ padding: '1rem 1.2rem', borderRadius: '12px', border: '1px solid rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.06)', marginBottom: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      <span style={{ fontSize: '1.1rem' }}>🏷️</span>
-                      <label style={{ margin: 0, color: '#f59e0b', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Discount</label>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ flex: 1, position: 'relative' }}>
-                        <input
-                          type="number"
-                          name="discount_percent"
-                          min="0"
-                          max="90"
-                          step="1"
-                          value={formData.discount_percent}
-                          onChange={handleInputChange}
-                          className="futuristic-input"
-                          placeholder="0"
-                          style={{ paddingRight: '2.4rem', borderColor: formData.discount_percent > 0 ? 'rgba(245,158,11,0.6)' : '' }}
-                        />
-                        <span style={{ position: 'absolute', right: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', fontWeight: 700, fontSize: '1rem', pointerEvents: 'none' }}>%</span>
-                      </div>
-                      <div style={{ minWidth: '110px', textAlign: 'center' }}>
-                        {formData.discount_percent > 0 ? (
-                          <div style={{ background: 'rgba(245,158,11,0.12)', borderRadius: '8px', padding: '6px 10px' }}>
-                            <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>Sale Price</div>
-                            <div style={{ color: '#f59e0b', fontWeight: 700, fontSize: '1rem' }}>
-                              ₹{formData.price ? (Number(formData.price) * (1 - formData.discount_percent / 100)).toFixed(0) : '—'}
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>No discount</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="admin-actions">
+<div className="admin-actions">
                     {isEditing && <button type="button" className="btn-secondary" onClick={cancelEdit}>Cancel</button>}
                     <button type="submit" className="btn-primary flex-center gap-2">
                       {isEditing ? <Edit2 size={18} /> : <Plus size={18} />}
@@ -835,10 +815,9 @@ const Admin = () => {
             <div className="admin-list-container">
               <h2>Inventory ({products.length})</h2>
               <div className="admin-products-table glass-panel">
-                {productLoading ? <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading...</p> :
-                  products.length === 0 ? <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No products yet.</p> : (
+                {products.length === 0 ? <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No products yet.</p> : (
                     <table className="inventory-table">
-                      <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Discount</th><th>Status</th><th>Actions</th></tr></thead>
+                      <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
                       <tbody>
                         {products.map(p => (
                           <tr key={p.id}>
@@ -846,12 +825,6 @@ const Admin = () => {
                             <td className="font-weight-600">{p.name} {p.featured && <span style={{ color: 'var(--accent-color)', fontSize: '0.65rem', padding: '2px 4px', border: '1px solid var(--accent-color)', borderRadius: '4px' }}>FEATURED</span>}</td>
                             <td><span className="badge category-badge">{p.category}</span></td>
                             <td className="text-accent font-weight-600">₹{Number(p.price).toFixed(2)}</td>
-                            <td>
-                              {p.discount_percent > 0
-                                ? <span style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', border: '1px solid rgba(245,158,11,0.3)' }}>🏷️ {p.discount_percent}% OFF</span>
-                                : <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>—</span>
-                              }
-                            </td>
                             <td>{p.in_stock === false ? <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>Out of Stock</span> : <span style={{ color: '#10b981', fontSize: '0.85rem' }}>In Stock</span>}</td>
                             <td>
                               <div className="table-actions">

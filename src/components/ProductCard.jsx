@@ -12,11 +12,11 @@ const ProductCard = ({ product }) => {
     <div className="product-card glass-panel">
       <Link to={`/products/${product.id}`} className="product-image-container">
         <img src={product.image} alt={product.name} className="product-image" />
-        {product.discount_percent > 0 && (
-          <div className="sale-badge">-{product.discount_percent}% OFF</div>
-        )}
         <div className="product-overlay">
           <button className="btn-primary quick-view">Quick View</button>
+          <div className="price-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+
+          </div>
         </div>
       </Link>
       
@@ -25,16 +25,6 @@ const ProductCard = ({ product }) => {
           <Link to={`/products/${product.id}`}>
             <h3 className="product-title">{product.name}</h3>
           </Link>
-          <div className="price-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            {product.discount_percent > 0 ? (
-              <>
-                <span className="product-price discounted-price">₹{(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}</span>
-                <span className="original-price" style={{ textDecoration: 'line-through', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>₹{Number(product.price).toFixed(2)}</span>
-              </>
-            ) : (
-              <span className="product-price">₹{Number(product.price).toFixed(2)}</span>
-            )}
-          </div>
         </div>
         
         <p className="product-category">{product.category}</p>

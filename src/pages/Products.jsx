@@ -42,12 +42,10 @@ const Products = () => {
     if (searchQuery) setFilter('All');
   }, [searchQuery]);
 
-  const dynamicCategories = ['All', 'Discounts', ...new Set(products.map(p => p.category))];
+  const dynamicCategories = ['All', ...new Set(products.map(p => p.category))];
 
   let filteredProducts = products;
-  if (filter === 'Discounts') {
-    filteredProducts = products.filter(p => p.discount_percent > 0);
-  } else if (filter !== 'All') {
+  if (filter !== 'All') {
     filteredProducts = products.filter(p => p.category === filter);
   }
 

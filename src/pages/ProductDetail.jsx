@@ -60,9 +60,7 @@ const ProductDetail = () => {
       "offers": {
         "@type": "Offer",
         "priceCurrency": "INR",
-        "price": product.discount_percent > 0 
-          ? (Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)
-          : Number(product.price).toFixed(2),
+        "price": Number(product.price).toFixed(2),
         "availability": product.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
       }
     };
@@ -174,14 +172,7 @@ const ProductDetail = () => {
             <span className="detail-category">{product.category}</span>
             <h1 className="detail-title title-glow">{product.name}</h1>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginTop: '0.5rem' }}>
-              {product.discount_percent > 0 ? (
-                <>
-                  <p className="detail-price">₹{(Number(product.price) * (1 - product.discount_percent / 100)).toFixed(2)}</p>
-                  <p className="original-price" style={{ textDecoration: 'line-through', color: 'var(--text-secondary)', fontSize: '1.2rem' }}>₹{Number(product.price).toFixed(2)}</p>
-                </>
-              ) : (
-                <p className="detail-price">₹{Number(product.price).toFixed(2)}</p>
-              )}
+              <p className="detail-price">₹{Number(product.price).toFixed(2)}</p>
             </div>
           </div>
 
