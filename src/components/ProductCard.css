@@ -30,8 +30,12 @@
 }
 
 .icon-btn-large {
-  padding: 0.35rem;
-  font-size: 0.70rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 0.8rem;
 }
 
 /* Adjust image container height proportionally */
@@ -49,10 +53,7 @@
   }
 }
 
-/* Larger screens: increase card width slightly */
-
-
-/* Existing mobile adjustments keep cards full width */
+/* Mobile adjustments */
 @media (max-width: 600px) {
   .product-card {
     max-width: 100%;
@@ -75,21 +76,6 @@
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(0, 255, 204, 0.15);
 }
-
-/* Duplicate .product-image-container definition removed – original definition at lines 38-45 is retained */
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-  .product-card {
-    max-width: 100%;
-    padding: 0.5rem;
-    margin: 0 auto;
-  }
-  .product-title {
-    font-size: 0.9rem;
-  }
-}
-
 
 .product-image {
   width: 100%;
@@ -119,13 +105,6 @@
 .product-card:hover .product-overlay {
   opacity: 1;
 }
-
-  .product-info {
-    padding: 0.6rem;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
 
 .product-header {
   display: flex;
@@ -161,17 +140,8 @@
   margin-bottom: 1.5rem;
 }
 
-  .product-actions {
+.product-actions {
   display: none;
-}
-
-.icon-btn-large {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  padding: 0.8rem;
 }
 
 .sale-badge {
