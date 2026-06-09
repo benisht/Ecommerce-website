@@ -17,6 +17,16 @@
   align-items: start;
 }
 
+@media (max-width: 900px) {
+  .checkout-layout {
+    grid-template-columns: 1fr;
+  }
+  .checkout-summary {
+    order: -1; /* Show summary before form on mobile */
+    margin-bottom: 2rem;
+  }
+}
+
 .checkout-steps {
   padding: 3rem;
 }
@@ -114,7 +124,15 @@
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--glass-border);
 }
-
+ @media (max-width: 768px) {
+  .navbar-container {
+    height: var(--header-height-mobile, 60px);
+    background: var(--bg-primary, #fff);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: saturate(180%) blur(20px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+}
 .summary-items {
   margin-bottom: 2rem;
 }

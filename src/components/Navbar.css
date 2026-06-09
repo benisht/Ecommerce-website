@@ -10,6 +10,15 @@
   border-bottom: 1px solid transparent;
 }
 
+/* Mobile header adjustments */
+@media (max-width: 768px) {
+  .navbar-container {
+    height: var(--header-height-mobile, 60px);
+    background: var(--bg-primary, #fff);
+    border-bottom: 1px solid var(--glass-border);
+  }
+}
+
 .navbar-container.scrolled {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 0;
