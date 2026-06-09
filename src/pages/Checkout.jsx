@@ -165,7 +165,7 @@ const Checkout = () => {
         <h1 className="title-glow">SECURE <span className="text-accent">CHECKOUT</span></h1>
       </div>
 
-      <div className="checkout-layout">
+      <div className="checkout-layout container">
         <div className="checkout-steps glass-panel">
           <div className="step-indicator">
             <div className={`step ${step >= 1 ? 'active' : ''}`}>1. Shipping</div>
@@ -318,7 +318,7 @@ const Checkout = () => {
         </div>
 
         {/* ── ORDER SUMMARY ── */}
-        <div className="checkout-summary glass-panel">
+        <div className="checkout-summary glass-panel container">
           <h2>ORDER SUMMARY</h2>
           <div className="summary-items">
             {cartItems.length === 0 ? (

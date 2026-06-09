@@ -18,7 +18,7 @@
 
 .checkout-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 3rem;
   margin-bottom: 8rem;
   align-items: start;
@@ -33,19 +33,21 @@
     gap: 2rem;
   }
   .checkout-summary {
-    position: static;
-    top: auto;
-    width: 100%;
+    order: -1;
     padding: 1.5rem;
     margin-bottom: 2rem;
     box-shadow: none;
-    order: -1;
   }
 }
 
 .checkout-steps {
-  padding: 3rem;
+  width: 100%;
 }
+.checkout-steps .glass-panel {
+  margin: 0;
+  max-width: 100%;
+}
+
 
 .step-indicator {
   display: flex;
@@ -128,14 +130,14 @@
 
 /* Summary Panel */
 .checkout-summary {
-  padding: 2.5rem;
-  position: fixed;
-  top: var(--header-height-mobile, 60px);
-  left: 0;
+  padding: 3rem;
+  position: static;
   width: 100%;
-  z-index: 999;
+  max-width: 100%;
+  margin: 0 auto;
   background: var(--bg-primary, #fff);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
