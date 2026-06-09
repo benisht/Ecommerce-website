@@ -3,8 +3,8 @@
   flex-direction: column;
   overflow: hidden;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  width: 180px;
-  height: 250px; /* fixed height for consistent layout */
+  width: 100%;
+  height: 320px;
   margin: 0 auto;
   background: var(--bg-primary);
   border-radius: 8px;
@@ -49,7 +49,9 @@
 
 @media (min-width: 1200px) {
   .product-card {
-    max-width: 180px; /* Match base card width on very large screens */
+    width: 100%;
+    max-width: 100%;
+    height: 360px;
   }
 }
 
