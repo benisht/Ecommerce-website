@@ -46,7 +46,7 @@ const Contact = () => {
             <Mail className="text-accent" size={24} />
             <div>
               <h3>Email Communication</h3>
-              <p>transmit@lookwalk.sys</p>
+              <p>lookwalkclothing@gmail.com</p>
             </div>
           </div>
 
