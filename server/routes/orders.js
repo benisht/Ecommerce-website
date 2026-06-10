@@ -5,10 +5,20 @@ const { authenticateToken, isAdmin } = require('../middleware/auth');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+let razorpay;
+const getRazorpayInstance = () => {
+  if (!razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error('Razorpay keys are not configured on the server.');
+    }
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return razorpay;
+};
+
 // ── CREATE RAZORPAY ORDER (Public) ──────────────────────────────────────────
 router.post('/create-order', async (req, res) => {
   const { customer, delivery_address, items, total, shippingZone } = req.body;
@@ -18,9 +28,12 @@ router.post('/create-order', async (req, res) => {
   }
 
   // Check Razorpay keys are configured
-  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    return res.status(401).json({ error: 'Razorpay authentication failed: Keys are not configured.' });
+  try {
+    getRazorpayInstance();
+  } catch (keyErr) {
+    return res.status(401).json({ error: keyErr.message });
   }
+
 
   // Calculate amount in paise (minimum 100 paise = 1 INR)
   const amountInPaise = Math.round(Number(total) * 100);
@@ -100,7 +113,7 @@ router.post('/create-order', async (req, res) => {
       receipt: String(newOrderId),
     };
 
-    const razorpayOrder = await razorpay.orders.create(options);
+    const razorpayOrder = await getRazorpayInstance().orders.create(options);
 
     await client.query('COMMIT');
     res.json({
