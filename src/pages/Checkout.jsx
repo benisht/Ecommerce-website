@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CreditCard, Truck, ShieldCheck, Plus, Minus, Trash2, QrCode, Loader, ShoppingCart } from 'lucide-react';
 import { getCartItems, clearCart, updateCartItemQuantity, removeCartItem } from '../data/cartManager';
-// Removed deprecated dataManager import; QR fetched via fetchSettings
-import { placeOrder, fetchSettings } from '../data/apiService';
+import { createRazorpayOrder, verifyRazorpayPayment, fetchSettings } from '../data/apiService';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -13,8 +12,6 @@ const Checkout = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [cartItems, setCartItems] = useState([]);
-  const [paymentQR, setPaymentQR] = useState('');
-  const [firebaseReady, setFirebaseReady] = useState(true);
   const [shippingZone, setShippingZone] = useState('local'); // 'local' or 'std'
   const [stdRate, setStdRate] = useState(300);
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
@@ -24,18 +21,11 @@ const Checkout = () => {
     name: '', email: '', phone: '', address: '', cityState: '', pincode: '',
   });
 
-  // Step 2 – Payment details
-  const [payment, setPayment] = useState({
-    gpayPhone: '', upiId: '', transactionId: '', gpayName: '',
-  });
-
   const reloadCart = () => setCartItems(getCartItems());
 
   useEffect(() => {
     const loadData = async () => {
       reloadCart();
-      const qr = await fetchSettings('payment_qr');
-      setPaymentQR(qr);
       try {
         const rate = await fetchSettings('std_shipping_rate');
         if (rate) setStdRate(Number(rate));
@@ -59,7 +49,7 @@ const Checkout = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    if (step < 3) setStep(step + 1);
+    if (step < 2) setStep(step + 1);
   };
 
   const handlePay = async (e) => {
@@ -80,12 +70,6 @@ const Checkout = () => {
           cityState: shipping.cityState,
           pincode: shipping.pincode,
         },
-        payment_info: {
-          gpayPhone: payment.gpayPhone,
-          upiId: payment.upiId,
-          transactionId: payment.transactionId,
-          gpayName: payment.gpayName,
-        },
         items: cartItems.map(item => ({
           productId: item.id,
           name: item.name,
@@ -101,22 +85,63 @@ const Checkout = () => {
         total,
       };
 
-      const response = await placeOrder(orderData);
-      clearCart();
-      setOrderId(response.id);
-      setIsComplete(true);
+      // 1. Create Razorpay Order on backend
+      const response = await createRazorpayOrder(orderData);
+
+      // 2. Open Razorpay Checkout modal
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_Szu8hLQ7FI9KxY',
+        amount: response.amount,
+        currency: response.currency,
+        name: 'LOOKWALK',
+        description: 'Secure Checkout Payment',
+        order_id: response.order_id,
+        handler: async (paymentResponse) => {
+          setIsProcessing(true);
+          try {
+            // Verify payment on backend
+            await verifyRazorpayPayment({
+              razorpay_payment_id: paymentResponse.razorpay_payment_id,
+              razorpay_order_id: paymentResponse.razorpay_order_id,
+              razorpay_signature: paymentResponse.razorpay_signature,
+              local_order_id: response.local_order_id
+            });
+            clearCart();
+            setOrderId(response.local_order_id);
+            setIsComplete(true);
+          } catch (err) {
+            console.error('Payment verification failed:', err);
+            alert(err.message || 'Payment verification failed. Please contact support.');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: shipping.name,
+          email: shipping.email,
+          contact: shipping.phone,
+        },
+        theme: {
+          color: '#3B82F6', // Futuristic vibrant blue
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+            alert('Payment modal closed. The transaction was cancelled.');
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (paymentFailedResponse) {
+        setIsProcessing(false);
+        alert(`Payment failed: ${paymentFailedResponse.error.description}`);
+      });
+      rzp.open();
+
     } catch (err) {
-      console.error('Order placement failed:', err);
-      if (err.code === 'unavailable' || err.message?.includes('firebaseConfig')) {
-        // Firebase not configured yet — still show success but warn
-        setFirebaseReady(false);
-        clearCart();
-        setOrderId('LWK-LOCAL-' + Date.now());
-        setIsComplete(true);
-      } else {
-        alert('Failed to place order. Check your internet connection and try again.');
-      }
-    } finally {
+      console.error('Order placement/Razorpay initiation failed:', err);
+      alert(err.message || 'Failed to initialize payment. Please try again.');
       setIsProcessing(false);
     }
   };
@@ -127,13 +152,8 @@ const Checkout = () => {
         <div className="glass-panel success-card">
           <ShieldCheck size={64} className="text-accent complete-icon" />
           <h1 className="title-glow text-accent">ORDER CONFIRMED!</h1>
-          {!firebaseReady && (
-            <p style={{ color: '#f59e0b', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
-              ⚠️ Firebase not connected — order saved locally only.
-            </p>
-          )}
           <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            Thank you, <strong>{shipping.name}</strong>! Your order has been received.
+            Thank you, <strong>{shipping.name}</strong>! Your payment was successful and order has been received.
           </p>
           <div className="order-id-badge" style={{ background: 'var(--bg-tertiary)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--accent-color)', marginBottom: '1.5rem', position: 'relative' }}>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '0.5rem' }}>Your Tracking Order ID</p>
@@ -176,16 +196,11 @@ const Checkout = () => {
             <div className={`step-line ${step >= 2 ? 'active' : ''}`}></div>
             <div className={`step ${step >= 2 ? 'active' : ''}`}>
               <span className="step-num">2</span>
-              <span className="step-text">Payment</span>
-            </div>
-            <div className={`step-line ${step === 3 ? 'active' : ''}`}></div>
-            <div className={`step ${step === 3 ? 'active' : ''}`}>
-              <span className="step-num">3</span>
-              <span className="step-text">Review</span>
+              <span className="step-text">Review & Pay</span>
             </div>
           </div>
 
-          <form onSubmit={step === 3 ? handlePay : handleNext} className="checkout-form">
+          <form onSubmit={step === 2 ? handlePay : handleNext} className="checkout-form">
             {/* ── STEP 1: Shipping ── */}
             {step === 1 && (
               <div className="step-content animate-fade-in-up">
@@ -272,63 +287,13 @@ const Checkout = () => {
                   </div>
                 </div>
                 <div className="checkout-actions">
-                  <button type="submit" className="btn-primary">Continue to Payment →</button>
+                  <button type="submit" className="btn-primary">Review & Pay →</button>
                 </div>
               </div>
             )}
 
-            {/* ── STEP 2: Payment ── */}
+            {/* ── STEP 2: Review & Pay ── */}
             {step === 2 && (
-              <div className="step-content animate-fade-in-up">
-                <h2>Payment via UPI / GPay</h2>
-                <div style={{ marginBottom: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  {paymentQR ? (
-                    <div style={{ background: '#fff', padding: '15px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
-                      <img src={paymentQR} alt="Payment QR Code" style={{ width: '200px', height: '200px', objectFit: 'contain' }} />
-                    </div>
-                  ) : (
-                    <div style={{ width: '200px', height: '200px', padding: '2rem', border: '2px dashed var(--glass-border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        <QrCode size={40} style={{ margin: '0 auto 10px', opacity: 0.5 }} />
-                        <p>QR Code Not Set By Admin</p>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-accent" style={{ marginTop: '1.5rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                    Pay ₹{total.toFixed(2)} and fill the details below
-                  </p>
-                </div>
-                <div className="form-grid">
-                  <div className="form-group grid-col-2">
-                    <label>GPAY / PHONE NUMBER USED</label>
-                    <input type="tel" required className="futuristic-input" placeholder="+91..."
-                      value={payment.gpayPhone} onChange={e => setPayment({ ...payment, gpayPhone: e.target.value })} />
-                  </div>
-                  <div className="form-group grid-col-2">
-                    <label>YOUR UPI ID</label>
-                    <input type="text" required className="futuristic-input" placeholder="username@bank"
-                      value={payment.upiId} onChange={e => setPayment({ ...payment, upiId: e.target.value })} />
-                  </div>
-                  <div className="form-group grid-col-2">
-                    <label>NAME IN GPAY (FOR VERIFICATION)</label>
-                    <input type="text" required className="futuristic-input" placeholder="Full name as in GPay"
-                      value={payment.gpayName} onChange={e => setPayment({ ...payment, gpayName: e.target.value })} />
-                  </div>
-                  <div className="form-group grid-col-2">
-                    <label>TRANSACTION ID / REF NO.</label>
-                    <input type="text" required className="futuristic-input" placeholder="12-digit reference number"
-                      value={payment.transactionId} onChange={e => setPayment({ ...payment, transactionId: e.target.value })} />
-                  </div>
-                </div>
-                <div className="checkout-actions space-between">
-                  <button type="button" className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
-                  <button type="submit" className="btn-primary">Review Order →</button>
-                </div>
-              </div>
-            )}
-
-            {/* ── STEP 3: Review ── */}
-            {step === 3 && (
               <div className="step-content animate-fade-in-up">
                 <h2>Review & Confirm</h2>
 
@@ -341,20 +306,18 @@ const Checkout = () => {
 
                 <div className="review-section glass-panel" style={{ padding: '1.25rem', borderRadius: '10px' }}>
                   <h3 style={{ marginBottom: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Payment Details</h3>
-                  <p style={{ fontSize: '0.9rem' }}>GPay Name: <strong>{payment.gpayName}</strong></p>
-                  <p style={{ fontSize: '0.9rem' }}>UPI ID: <strong>{payment.upiId}</strong></p>
-                  <p style={{ fontSize: '0.9rem' }}>Transaction ID: <strong>{payment.transactionId}</strong></p>
                   <p style={{ fontSize: '0.9rem', color: 'var(--accent-color)', fontWeight: 600 }}>Amount: ₹{total.toFixed(2)}</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Secure Standard Checkout via Razorpay (Supports Card, UPI, Netbanking, Wallets)</p>
                 </div>
 
                 <div className="checkout-actions space-between" style={{ marginTop: '1.5rem' }}>
-                  <button type="button" className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
+                  <button type="button" className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
                   <button type="submit" className="btn-primary" disabled={isProcessing}>
                     {isProcessing ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Loader size={18} className="spin" /> Placing Order...
+                        <Loader size={18} className="spin" /> Processing...
                       </span>
-                    ) : 'PLACE ORDER ✓'}
+                    ) : 'PAY WITH RAZORPAY ✓'}
                   </button>
                 </div>
               </div>

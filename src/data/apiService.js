@@ -112,6 +112,32 @@ export const placeOrder = async (orderData) => {
   return res.json();
 };
 
+export const createRazorpayOrder = async (orderData) => {
+  const res = await fetchWithTimeout(`${API_URL}/orders/create-order`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderData)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'API Error creating Razorpay order');
+  }
+  return res.json();
+};
+
+export const verifyRazorpayPayment = async (paymentDetails) => {
+  const res = await fetchWithTimeout(`${API_URL}/orders/verify-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(paymentDetails)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'API Error verifying payment signature');
+  }
+  return res.json();
+};
+
 export const fetchOrders = async (limit = 100, offset = 0) => {
   const res = await fetchWithTimeout(`${API_URL}/orders?limit=${limit}&offset=${offset}`);
   if (!res.ok) throw new Error('API Error fetching orders');
