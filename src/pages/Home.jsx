@@ -32,7 +32,21 @@ const Home = () => {
       try {
         const products = await fetchProducts();
         if (Array.isArray(products)) {
-          setFeaturedProducts(products.slice(0, 4));
+          // Choose the top 20 products using the following sorting criteria:
+          // 1. In Stock status priority (available items first)
+          // 2. Featured items priority (marked as Best Seller by admin)
+          // 3. Newest arrivals first (descending ID/created date)
+          const sorted = [...products].sort((a, b) => {
+            if (a.in_stock && !b.in_stock) return -1;
+            if (!a.in_stock && b.in_stock) return 1;
+
+            if (a.featured && !b.featured) return -1;
+            if (!a.featured && b.featured) return 1;
+
+            return b.id - a.id;
+          });
+
+          setFeaturedProducts(sorted.slice(0, 10));
           const discounted = products.filter(p => p.discount_percent > 0);
           setDiscountedProducts(discounted);
         } else {

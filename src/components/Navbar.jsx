@@ -2,14 +2,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getCartCount } from '../data/cartManager';
+import { getWishlistCount } from '../data/wishlistManager';
 import { fetchProducts } from '../data/apiService';
-import { ShoppingCart, Menu, X, Search } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, Heart } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(() => getCartCount());
+  const [wishlistCount, setWishlistCount] = useState(() => getWishlistCount());
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +42,12 @@ const Navbar = () => {
     const handleCartUpdate = () => setCartCount(getCartCount());
     window.addEventListener('cartUpdated', handleCartUpdate);
     return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, []);
+
+  useEffect(() => {
+    const handleWishlistUpdate = () => setWishlistCount(getWishlistCount());
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
   }, []);
 
   useEffect(() => {
@@ -106,6 +114,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Products', path: '/products' },
+    { name: 'Wishlist', path: '/wishlist' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -203,6 +212,11 @@ const Navbar = () => {
               </div>
             )}
           </div>
+
+          <Link to="/wishlist" className="icon-btn wishlist-btn" aria-label="Wishlist">
+            <Heart size={22} fill={wishlistCount > 0 ? '#ef4444' : 'none'} stroke={wishlistCount > 0 ? '#ef4444' : 'currentColor'} />
+            {wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}
+          </Link>
 
           <Link to="/checkout" className="icon-btn cart-btn" aria-label="Cart">
             <ShoppingCart size={22} />

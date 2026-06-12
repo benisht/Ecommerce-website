@@ -14,6 +14,7 @@ import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
 import Admin from './pages/Admin';
 import TrackOrder from './pages/TrackOrder';
+import Wishlist from './pages/Wishlist';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/track-order" element={<TrackOrder />} />
+        <Route path="/wishlist" element={<Wishlist />} />
       </Routes>
       <Footer />
     </Router>
