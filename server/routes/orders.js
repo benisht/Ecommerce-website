@@ -166,8 +166,8 @@ router.post('/verify-payment', async (req, res) => {
     };
 
     await db.query(
-      `UPDATE orders SET payment_status = $1, payment_info = $2 WHERE id = $3`,
-      ['received', JSON.stringify(paymentInfo), local_order_id]
+      `UPDATE orders SET payment_status = $1, payment_info = $2, delivery_status = $3 WHERE id = $4`,
+      ['received', JSON.stringify(paymentInfo), 'confirmed', local_order_id]
     );
 
     res.json({ success: true });
@@ -182,7 +182,7 @@ router.get('/', authenticateToken, isAdmin, async (req, res) => {
   const { limit, offset } = req.query;
 
   try {
-    let sql = 'SELECT * FROM orders ORDER BY created_at DESC';
+    let sql = "SELECT * FROM orders WHERE payment_status = 'received' ORDER BY created_at DESC";
     const params = [];
 
     if (limit) {
@@ -321,25 +321,381 @@ router.put('/:id', authenticateToken, isAdmin, async (req, res) => {
     }
   }
 
+  const pgClient = db.pool;
+  let client;
+
   try {
-    await db.query(`UPDATE orders SET ${field} = $1 WHERE id = $2`, [value, id]);
+    client = await pgClient.connect();
+    await client.query('BEGIN');
+
+    // If updating delivery status, handle stock logic
+    if (field === 'delivery_status') {
+      const orderRes = await client.query('SELECT items, delivery_status FROM orders WHERE id = $1 FOR UPDATE', [id]);
+      if (orderRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+
+      const order = orderRes.rows[0];
+      const oldStatus = order.delivery_status;
+      const newStatus = value;
+
+      const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+
+      if (oldStatus !== 'cancelled' && newStatus === 'cancelled') {
+        // RESTORE STOCK
+        for (const item of items) {
+          if (!item.productId) continue;
+
+          const productRes = await client.query('SELECT name, variants FROM products WHERE id = $1 FOR UPDATE', [item.productId]);
+          if (productRes.rows.length > 0) {
+            const p = productRes.rows[0];
+            let variants = [];
+            try {
+              variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : (p.variants || []);
+            } catch (e) {
+              variants = [];
+            }
+
+            const variantIndex = variants.findIndex(v => v.color === item.color);
+            if (variantIndex > -1) {
+              const v = variants[variantIndex];
+              
+              if (typeof v.stock === 'object' && v.stock !== null && item.size) {
+                const availableStock = v.stock[item.size] || 0;
+                v.stock[item.size] = availableStock + item.quantity;
+              } else {
+                const availableStock = Number(v.stock) || 0;
+                v.stock = availableStock + item.quantity;
+              }
+
+              await client.query('UPDATE products SET variants = $1 WHERE id = $2', [JSON.stringify(variants), item.productId]);
+            }
+          }
+        }
+      } else if (oldStatus === 'cancelled' && newStatus !== 'cancelled') {
+        // RE-DEDUCT STOCK (verify first)
+        for (const item of items) {
+          if (!item.productId) continue;
+
+          const productRes = await client.query('SELECT name, variants FROM products WHERE id = $1 FOR UPDATE', [item.productId]);
+          if (productRes.rows.length === 0) {
+            throw new Error(`Product ${item.name} not found.`);
+          }
+
+          const p = productRes.rows[0];
+          let variants = [];
+          try {
+            variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : (p.variants || []);
+          } catch (e) {
+            variants = [];
+          }
+
+          const variantIndex = variants.findIndex(v => v.color === item.color);
+          if (variantIndex > -1) {
+            const v = variants[variantIndex];
+            
+            if (typeof v.stock === 'object' && v.stock !== null && item.size) {
+              const availableStock = v.stock[item.size] || 0;
+              if (availableStock < item.quantity) {
+                throw new Error(`Insufficient stock to revert cancellation for ${p.name} (${item.color} - ${item.size}). Available: ${availableStock}`);
+              }
+              v.stock[item.size] = availableStock - item.quantity;
+            } else {
+              const availableStock = Number(v.stock) || 0;
+              if (availableStock < item.quantity) {
+                throw new Error(`Insufficient stock to revert cancellation for ${p.name} (${item.color}). Available: ${availableStock}`);
+              }
+              v.stock = availableStock - item.quantity;
+            }
+
+            await client.query('UPDATE products SET variants = $1 WHERE id = $2', [JSON.stringify(variants), item.productId]);
+          }
+        }
+      }
+    }
+
+    await client.query(`UPDATE orders SET ${field} = $1 WHERE id = $2`, [value, id]);
+    await client.query('COMMIT');
     res.json({ success: true });
   } catch (err) {
+    if (client) {
+      await client.query('ROLLBACK');
+    }
     console.error('Update order error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message || 'Failed to update order.' });
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 });
 
 // ── DELETE ORDER (Admin Only) ──────────────────────────────────────────────
 router.delete('/:id', authenticateToken, isAdmin, async (req, res) => {
   const { id } = req.params;
+  const pgClient = db.pool;
+  let client;
+
   try {
-    await db.query('DELETE FROM orders WHERE id = $1', [id]);
+    client = await pgClient.connect();
+    await client.query('BEGIN');
+
+    const orderRes = await client.query('SELECT items, delivery_status FROM orders WHERE id = $1 FOR UPDATE', [id]);
+    if (orderRes.rows.length > 0) {
+      const order = orderRes.rows[0];
+      // Restore stock if deleting an active (non-cancelled) order
+      if (order.delivery_status !== 'cancelled') {
+        const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+        for (const item of items) {
+          if (!item.productId) continue;
+
+          const productRes = await client.query('SELECT name, variants FROM products WHERE id = $1 FOR UPDATE', [item.productId]);
+          if (productRes.rows.length > 0) {
+            const p = productRes.rows[0];
+            let variants = [];
+            try {
+              variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : (p.variants || []);
+            } catch (e) {
+              variants = [];
+            }
+
+            const variantIndex = variants.findIndex(v => v.color === item.color);
+            if (variantIndex > -1) {
+              const v = variants[variantIndex];
+              
+              if (typeof v.stock === 'object' && v.stock !== null && item.size) {
+                const availableStock = v.stock[item.size] || 0;
+                v.stock[item.size] = availableStock + item.quantity;
+              } else {
+                const availableStock = Number(v.stock) || 0;
+                v.stock = availableStock + item.quantity;
+              }
+
+              await client.query('UPDATE products SET variants = $1 WHERE id = $2', [JSON.stringify(variants), item.productId]);
+            }
+          }
+        }
+      }
+    }
+
+    await client.query('DELETE FROM orders WHERE id = $1', [id]);
+    await client.query('COMMIT');
     res.json({ success: true });
   } catch (err) {
+    if (client) {
+      await client.query('ROLLBACK');
+    }
     console.error('Delete order error:', err);
     res.status(500).json({ error: err.message });
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 });
+
+// ── GET SINGLE ORDER FOR TRACKING (Public) ──────────────────────────────────
+router.get('/track/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  // Clean order ID: remove any leading #
+  const cleanId = id.replace('#', '').trim();
+  if (isNaN(cleanId)) {
+    return res.status(400).json({ error: 'Invalid Order ID format.' });
+  }
+
+  try {
+    const result = await db.query(
+      `SELECT id, customer, delivery_address, items, total, payment_status, delivery_status, tracking_id, created_at 
+       FROM orders 
+       WHERE id = $1`,
+      [parseInt(cleanId)]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    const order = result.rows[0];
+
+    // Security: Only show paid/verified orders
+    if (order.payment_status !== 'received') {
+      return res.status(404).json({ error: 'Order not found or payment not verified.' });
+    }
+
+    // Format JSON fields
+    const formattedOrder = {
+      ...order,
+      customer: typeof order.customer === 'string' ? JSON.parse(order.customer) : (order.customer || {}),
+      delivery_address: typeof order.delivery_address === 'string' ? JSON.parse(order.delivery_address) : (order.delivery_address || {}),
+      items: typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || [])
+    };
+
+    res.json(formattedOrder);
+  } catch (err) {
+    console.error('Track order error:', err);
+    res.status(500).json({ error: 'Failed to fetch order tracking status.' });
+  }
+});
+
+// ── CANCEL PENDING ORDER (Public) ───────────────────────────────────────────
+router.post('/cancel-pending', async (req, res) => {
+  const { local_order_id } = req.body;
+
+  if (!local_order_id) {
+    return res.status(400).json({ error: 'Missing local order ID.' });
+  }
+
+  const pgClient = db.pool;
+  let client;
+
+  try {
+    client = await pgClient.connect();
+    await client.query('BEGIN');
+
+    // 1. Fetch order details and verify payment_status
+    const orderRes = await client.query('SELECT items, payment_status FROM orders WHERE id = $1 FOR UPDATE', [local_order_id]);
+    if (orderRes.rows.length === 0) {
+      throw new Error('Order not found.');
+    }
+
+    const order = orderRes.rows[0];
+
+    // Only cancel/rollback if the order is still pending
+    if (order.payment_status === 'pending') {
+      const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+
+      // 2. Restore stock for each item
+      for (const item of items) {
+        if (!item.productId) continue;
+
+        const productRes = await client.query('SELECT name, variants FROM products WHERE id = $1 FOR UPDATE', [item.productId]);
+        if (productRes.rows.length > 0) {
+          const p = productRes.rows[0];
+          let variants = [];
+          try {
+            variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : (p.variants || []);
+          } catch (e) {
+            variants = [];
+          }
+
+          const variantIndex = variants.findIndex(v => v.color === item.color);
+          if (variantIndex > -1) {
+            const v = variants[variantIndex];
+            
+            if (typeof v.stock === 'object' && v.stock !== null && item.size) {
+              const availableStock = v.stock[item.size] || 0;
+              v.stock[item.size] = availableStock + item.quantity;
+            } else {
+              const availableStock = Number(v.stock) || 0;
+              v.stock = availableStock + item.quantity;
+            }
+
+            await client.query('UPDATE products SET variants = $1 WHERE id = $2', [JSON.stringify(variants), item.productId]);
+          }
+        }
+      }
+
+      // 3. Delete the order
+      await client.query('DELETE FROM orders WHERE id = $1', [local_order_id]);
+      await client.query('COMMIT');
+      res.json({ success: true, message: 'Pending order cancelled and stock restored.' });
+    } else {
+      await client.query('COMMIT');
+      res.json({ success: false, message: 'Order is not pending. Cannot cancel.' });
+    }
+
+  } catch (err) {
+    if (client) {
+      await client.query('ROLLBACK');
+    }
+    console.error('Cancel Pending Order Failed:', err);
+    res.status(500).json({ error: err.message || 'Failed to cancel pending order.' });
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
+// ── AUTOMATIC CLEANUP OF OLD PENDING ORDERS ─────────────────────────────────
+const cleanupOldPendingOrders = async () => {
+  const pgClient = db.pool;
+  let client;
+  try {
+    client = await pgClient.connect();
+    
+    // Find pending orders older than 15 minutes
+    const oldOrdersRes = await client.query(
+      `SELECT id, items FROM orders 
+       WHERE payment_status = 'pending' 
+       AND created_at < NOW() - INTERVAL '15 minutes'`
+    );
+
+    if (oldOrdersRes.rows.length === 0) {
+      return;
+    }
+
+    console.log(`[Pending Order Cleanup] Found ${oldOrdersRes.rows.length} expired pending orders.`);
+
+    for (const order of oldOrdersRes.rows) {
+      await client.query('BEGIN');
+      try {
+        const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+        
+        // Restore stock
+        for (const item of items) {
+          if (!item.productId) continue;
+          
+          const productRes = await client.query('SELECT name, variants FROM products WHERE id = $1 FOR UPDATE', [item.productId]);
+          if (productRes.rows.length > 0) {
+            const p = productRes.rows[0];
+            let variants = [];
+            try {
+              variants = typeof p.variants === 'string' ? JSON.parse(p.variants) : (p.variants || []);
+            } catch (e) {
+              variants = [];
+            }
+
+            const variantIndex = variants.findIndex(v => v.color === item.color);
+            if (variantIndex > -1) {
+              const v = variants[variantIndex];
+              
+              if (typeof v.stock === 'object' && v.stock !== null && item.size) {
+                const availableStock = v.stock[item.size] || 0;
+                v.stock[item.size] = availableStock + item.quantity;
+              } else {
+                const availableStock = Number(v.stock) || 0;
+                v.stock = availableStock + item.quantity;
+              }
+
+              await client.query('UPDATE products SET variants = $1 WHERE id = $2', [JSON.stringify(variants), item.productId]);
+            }
+          }
+        }
+
+        // Delete the order
+        await client.query('DELETE FROM orders WHERE id = $1', [order.id]);
+        await client.query('COMMIT');
+        console.log(`[Pending Order Cleanup] Order #${order.id} cancelled & stock restored.`);
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(`[Pending Order Cleanup] Failed to cleanup order #${order.id}:`, err);
+      }
+    }
+  } catch (err) {
+    console.error('[Pending Order Cleanup] Error during query execution:', err);
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+};
+
+// Start cleanup interval (every 5 minutes)
+setInterval(cleanupOldPendingOrders, 5 * 60 * 1000);
+
+// Run initial cleanup after 5 seconds to clear any stale data
+setTimeout(cleanupOldPendingOrders, 5000);
 
 module.exports = router;

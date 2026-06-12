@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CreditCard, Truck, ShieldCheck, Plus, Minus, Trash2, QrCode, Loader, ShoppingCart } from 'lucide-react';
 import { getCartItems, clearCart, updateCartItemQuantity, removeCartItem } from '../data/cartManager';
-import { createRazorpayOrder, verifyRazorpayPayment, fetchSettings } from '../data/apiService';
+import { createRazorpayOrder, verifyRazorpayPayment, fetchSettings, cancelPendingOrder } from '../data/apiService';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -125,16 +125,26 @@ const Checkout = () => {
           color: '#3B82F6', // Futuristic vibrant blue
         },
         modal: {
-          ondismiss: () => {
+          ondismiss: async () => {
             setIsProcessing(false);
+            try {
+              await cancelPendingOrder(response.local_order_id);
+            } catch (cancelErr) {
+              console.error('Failed to cancel pending order on dismiss:', cancelErr);
+            }
             alert('Payment modal closed. The transaction was cancelled.');
           }
         }
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (paymentFailedResponse) {
+      rzp.on('payment.failed', async function (paymentFailedResponse) {
         setIsProcessing(false);
+        try {
+          await cancelPendingOrder(response.local_order_id);
+        } catch (cancelErr) {
+          console.error('Failed to cancel pending order on payment failure:', cancelErr);
+        }
         alert(`Payment failed: ${paymentFailedResponse.error.description}`);
       });
       rzp.open();

@@ -382,19 +382,6 @@ const Admin = () => {
 
 
 
-  const handleQRUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      compressFile(file, async (img) => {
-        try {
-          await updateSettings('payment_qr', img);
-          setQrUrl(img);
-          alert('QR saved in Database!');
-        } catch { alert('Failed to save QR.'); }
-      });
-    }
-  };
-
   const handleAppearanceUpload = async (e, key, setter) => {
     const file = e.target.files[0];
     if (file) {
@@ -411,22 +398,6 @@ const Admin = () => {
         }
       });
     }
-  };
-  const handleBannerImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingKey('home_banner');
-    compressFile(file, async (img) => {
-      try {
-        await updateSettings('home_banner', img);
-        setBanner(prev => ({ ...prev, image: img }));
-        alert('Banner image updated!');
-      } catch {
-        alert('Failed to upload banner image.');
-      } finally {
-        setUploadingKey('');
-      }
-    });
   };
 
   const removeAppearanceSetting = async (key, setter) => {
@@ -476,7 +447,8 @@ const Admin = () => {
     .filter(o => o.payment_status === 'received')
     .reduce((sum, o) => sum + Number(o.total || 0), 0);
 
-  const pendingPayments = orders.filter(o => o.payment_status === 'pending').length;
+  const activeShipments = orders.filter(o => o.payment_status === 'received' && ['confirmed', 'packed', 'shipped'].includes(o.delivery_status)).length;
+  const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
   const unreadCount = queries.filter(q => q.status === 'unread').length;
 
   const lowStockAlerts = [];
@@ -559,7 +531,7 @@ const Admin = () => {
           </button>
           <button className={`admin-nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
             <Truck size={20} /> <span>Orders</span>
-            {pendingPayments > 0 && <span className="nav-count warn">{pendingPayments}</span>}
+            {activeShipments > 0 && <span className="nav-count warn">{activeShipments}</span>}
           </button>
           <button className={`admin-nav-item ${activeTab === 'queries' ? 'active' : ''}`} onClick={() => setActiveTab('queries')}>
             <MessageSquare size={20} /> <span>Queries</span>
@@ -567,9 +539,6 @@ const Admin = () => {
           </button>
           <button className={`admin-nav-item ${activeTab === 'appearance' ? 'active' : ''}`} onClick={() => setActiveTab('appearance')}>
             <Monitor size={20} /> <span>Appearance</span>
-          </button>
-          <button className={`admin-nav-item ${activeTab === 'payment' ? 'active' : ''}`} onClick={() => setActiveTab('payment')}>
-            <QrCode size={20} /> <span>Payment QR</span>
           </button>
         </nav>
 
@@ -616,12 +585,12 @@ const Admin = () => {
                 <div><p className="stat-num">{orders.length}</p><p className="stat-label">Total Orders</p></div>
               </div>
               <div className="stat-card glass-panel">
-                <div className="stat-icon" style={{ background: '#f59e0b22' }}><Clock size={22} style={{ color: '#f59e0b' }} /></div>
-                <div><p className="stat-num" style={{ color: '#f59e0b' }}>{pendingPayments}</p><p className="stat-label">Unpaid Orders</p></div>
+                <div className="stat-icon" style={{ background: '#3b82f622' }}><Truck size={22} style={{ color: '#3b82f6' }} /></div>
+                <div><p className="stat-num" style={{ color: '#3b82f6' }}>{activeShipments}</p><p className="stat-label">Pending Deliveries</p></div>
               </div>
               <div className="stat-card glass-panel">
-                <div className="stat-icon" style={{ background: '#3b82f622' }}><Mail size={22} style={{ color: '#3b82f6' }} /></div>
-                <div><p className="stat-num">{uniqueCustomerCount}</p><p className="stat-label">Unique Customers</p></div>
+                <div className="stat-icon" style={{ background: '#8b5cf622' }}><DollarSign size={22} style={{ color: '#8b5cf6' }} /></div>
+                <div><p className="stat-num">₹{Math.round(avgOrderValue).toLocaleString('en-IN')}</p><p className="stat-label">Avg. Order Value</p></div>
               </div>
             </div>
 
@@ -920,7 +889,7 @@ const Admin = () => {
                           {order.payment_status === 'received' ? '✓ Paid' : '⏳ Payment Pending'}
                         </span>
                         <span className="order-badge" style={{ background: statusColor(order.delivery_status) + '22', color: statusColor(order.delivery_status), border: `1px solid ${statusColor(order.delivery_status)}` }}>
-                          {order.delivery_status?.toUpperCase() || 'PENDING'}
+                          {order.delivery_status === 'delivered' ? 'CLOSED' : (order.delivery_status?.toUpperCase() || 'PENDING')}
                         </span>
                       </div>
                       <button className="icon-btn" style={{ marginLeft: 'auto' }}>
@@ -997,10 +966,10 @@ const Admin = () => {
                                   style={{ fontSize: '0.8rem', height: '36px' }}
                                 >
                                   <option value="pending">Pending</option>
-                                  <option value="confirmed">Confirmed</option>
+                                  <option value="confirmed">Confirmed (Paid)</option>
                                   <option value="packed">Packed</option>
                                   <option value="shipped">Shipped</option>
-                                  <option value="delivered">Delivered</option>
+                                  <option value="delivered">Delivered (Closed)</option>
                                   <option value="cancelled">Cancelled</option>
                                 </select>
                               </div>
@@ -1095,27 +1064,6 @@ const Admin = () => {
             <h2 className="flex-center gap-2" style={{ justifyContent: 'flex-start' }}><Monitor size={20} /> Website Appearance</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Update images and live announcement settings. Changes are saved globally in PostgreSQL.</p>
 
-            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', border: '1px solid var(--accent-color)', borderRadius: '12px', background: 'rgba(var(--accent-rgb), 0.03)' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>📢 Home Announcement Banner</h3>
-              <div className="form-group">
-                <label>Banner Text</label>
-                <input type="text" className="futuristic-input" value={banner.text} onChange={e => setBanner({...banner, text: e.target.value})} placeholder="e.g. NEW COLD WEATHER APPAREL DROP AVAILABLE!" />
-              </div>
-              <div className="form-group">
-                <label>Banner Image Background</label>
-                {banner.image && <img src={banner.image} alt="Banner Preview" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />}
-                <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', width: '100%' }}>
-                  <button type="button" className="btn-secondary flex-center gap-2" style={{ width: '100%' }}><Upload size={18} /> {banner.image ? 'Change Banner Image...' : 'Upload Banner Image...'}</button>
-                  <input type="file" accept="image/*" onChange={handleBannerImageUpload} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
-                </div>
-              </div>
-              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <input type="checkbox" checked={banner.active} onChange={e => setBanner({...banner, active: e.target.checked})} style={{ width: '20px', height: '20px' }} />
-                <label style={{ margin: 0 }}>Banner is Active/Visible</label>
-              </div>
-              <button className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} onClick={saveBanner}>Save Banner Setting</button>
-            </div>
-
             <div style={{ marginBottom: '2.5rem', padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>🚚 Shipping Cost Configuration</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Fixed local shipping within 30km is ₹150. Set standard shipping for outside 30km radius.</p>
@@ -1149,25 +1097,6 @@ const Admin = () => {
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            TAB: PAYMENT QR
-        ══════════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'payment' && (
-          <div className="admin-form-container glass-panel" style={{ maxWidth: '500px' }}>
-            <h2 className="flex-center gap-2" style={{ justifyContent: 'flex-start' }}><QrCode size={20} /> UPI Payment QR Code</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Upload UPI GPay QR Code. Customers scan this at checkout to process orders.</p>
-            {qrUrl ? (
-              <div style={{ marginBottom: '1.5rem', background: '#fff', padding: '15px', borderRadius: '8px', display: 'inline-block' }}>
-                <img src={qrUrl} alt="QR" style={{ width: '180px', height: '180px', objectFit: 'contain' }} />
-                <button type="button" onClick={() => { updateSettings('payment_qr', ''); setQrUrl(''); alert('QR cleared'); }} className="btn-secondary" style={{ display: 'block', marginTop: '1rem', color: '#ef4444', width: '100%', borderColor: '#ef4444' }}>Delete QR Code</button>
-              </div>
-            ) : <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>No QR Code set yet.</p>}
-            <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', width: '100%' }}>
-              <button type="button" className="btn-primary flex-center gap-2" style={{ width: '100%' }}><Upload size={18} /> Upload QR Code Image</button>
-              <input type="file" accept="image/*" onChange={handleQRUpload} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

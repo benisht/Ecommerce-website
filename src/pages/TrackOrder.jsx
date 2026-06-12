@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, Loader, Archive, Calendar } from 'lucide-react';
-import { fetchOrders } from '../data/apiService';
+import { trackOrder } from '../data/apiService';
 import './Contact.css'; // Reusing some glass styles
 
 const TrackOrder = () => {
@@ -11,29 +11,21 @@ const TrackOrder = () => {
 
   const handleTrack = async (e) => {
     e.preventDefault();
-    if (!orderId.trim()) return;
+    const inputId = orderId.trim();
+    if (!inputId) return;
 
     setLoading(true);
     setError('');
     setOrder(null);
 
     try {
-      const orders = await fetchOrders(200);
-      // Search for order by ID (either full ID or last 8 chars)
-      const found = orders.find(o => {
-        const sid = String(o.id);
-        const searchId = orderId.trim();
-        return sid === searchId || (sid.length >= 4 && sid.toUpperCase().endsWith(searchId.toUpperCase()));
-      });
-
-      if (found) {
-        setOrder(found);
-      } else {
-        setError('Order not found. Please check your Order ID.');
-      }
+      // Clean order ID: remove any leading #
+      const cleanId = inputId.replace('#', '').trim();
+      const found = await trackOrder(cleanId);
+      setOrder(found);
     } catch (err) {
       console.error('Tracking order failed:', err);
-      setError('Failed to fetch order status. Please try again later.');
+      setError('Order not found. Please check your Order ID.');
     } finally {
       setLoading(false);
     }

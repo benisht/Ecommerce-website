@@ -138,6 +138,28 @@ export const verifyRazorpayPayment = async (paymentDetails) => {
   return res.json();
 };
 
+export const trackOrder = async (id) => {
+  const res = await fetchWithTimeout(`${API_URL}/orders/track/${encodeURIComponent(id)}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'API Error tracking order');
+  }
+  return res.json();
+};
+
+export const cancelPendingOrder = async (localOrderId) => {
+  const res = await fetchWithTimeout(`${API_URL}/orders/cancel-pending`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ local_order_id: localOrderId })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'API Error cancelling pending order');
+  }
+  return res.json();
+};
+
 export const fetchOrders = async (limit = 100, offset = 0) => {
   const res = await fetchWithTimeout(`${API_URL}/orders?limit=${limit}&offset=${offset}`);
   if (!res.ok) throw new Error('API Error fetching orders');
