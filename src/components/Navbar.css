@@ -6,7 +6,7 @@
   height: var(--header-height);
   z-index: 1000;
   transition: all var(--transition-slow);
-  background: transparent;
+  background: var(--bg-primary);
   border-bottom: 1px solid transparent;
 }
 
@@ -122,6 +122,7 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -138,6 +139,9 @@
 
 .cart-btn {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cart-badge {
@@ -238,6 +242,24 @@
 .mobile-nav-links a:hover,
 .mobile-nav-links a.active {
   color: var(--accent-color);
+}
+
+@media (max-width: 768px) {
+  .nav-actions {
+    gap: 0.4rem;
+  }
+  .nav-actions .cart-btn,
+  .nav-actions .wishlist-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-nav-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-top: 1rem;
+  }
 }
 
 @media (max-width: 768px) {

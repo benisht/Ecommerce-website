@@ -262,6 +262,16 @@ const Navbar = () => {
             </li>
           ))}
         </ul>
+        <div className="mobile-nav-actions">
+          <Link to="/wishlist" className="icon-btn wishlist-btn" aria-label="Wishlist">
+            <Heart size={22} fill={wishlistCount > 0 ? '#ef4444' : 'none'} stroke={wishlistCount > 0 ? '#ef4444' : 'currentColor'} />
+            {wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}
+          </Link>
+          <Link to="/checkout" className="icon-btn cart-btn" aria-label="Cart">
+            <ShoppingCart size={22} />
+            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+          </Link>
+        </div>
         {/* Mobile Search */}
         <form className="mobile-search-form" onSubmit={handleSearchSubmit}>
           <input
