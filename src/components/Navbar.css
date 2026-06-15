@@ -35,8 +35,10 @@
     justify-content: center;
   }
   .mobile-menu-btn {
-    display: none; /* hide hamburger on mobile */
-  }
+  display: flex; /* show hamburger on mobile */
+  margin-left: auto; /* push to far right if needed */
+}
+
 
 .navbar-container.scrolled {
   background: var(--glass-bg);
@@ -249,6 +251,14 @@
   
   .mobile-nav {
     display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
