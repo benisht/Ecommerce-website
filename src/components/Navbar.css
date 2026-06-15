@@ -255,11 +255,22 @@
     justify-content: center;
   }
   .mobile-nav-actions {
-    display: flex;
-    gap: 0.8rem;
-    justify-content: center;
-    margin-top: 1rem;
-  }
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Ensure cart and wishlist icons are visible on mobile */
+.mobile-nav-actions .cart-btn,
+.mobile-nav-actions .wishlist-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  visibility: visible;
+  z-index: 10;
+}
 }
 
 @media (max-width: 768px) {
