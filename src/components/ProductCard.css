@@ -2,7 +2,7 @@
 .product-card {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(145deg, #dbeeff 0%, #bfdfff 40%, #a8d4f8 100%);
+  background: var(--bg-gradient);
   border-radius: 20px;          /* More compact border radius */
   padding: 0;
   overflow: hidden;             /* clips image to card's rounded corners */
@@ -11,7 +11,7 @@
               box-shadow  0.25s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
   box-sizing: border-box;
-  border: 1.5px solid rgba(14, 165, 233, 0.22);
+  border: 1.5px solid var(--glass-border);
 }
 
 .product-card:hover {
@@ -137,7 +137,7 @@
 
 .product-card-brand {
   font-size: 0.65rem;
-  color: #0284c7;
+  color: var(--accent-hover);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -147,7 +147,7 @@
 .product-card-title {
   font-size: 0.82rem;            /* Reduced font size */
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0 0 6px 0;
   line-height: 1.25;
   height: 1.25em;                /* Max 1 line to save vertical space */
@@ -160,7 +160,7 @@
 }
 
 .product-card-title:hover {
-  color: #0ea5e9;
+  color: var(--accent-color);
 }
 
 /* Price row */
@@ -173,7 +173,7 @@
 .product-card-price {
   font-size: 0.95rem;            /* Reduced price size */
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .product-card-price.discounted {

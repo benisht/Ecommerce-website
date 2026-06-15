@@ -4,14 +4,25 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getCartCount } from '../data/cartManager';
 import { getWishlistCount } from '../data/wishlistManager';
 import { fetchProducts } from '../data/apiService';
-import { ShoppingCart, Menu, X, Search, Heart } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, Heart, Sun, Moon } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
+  const [theme, setTheme] = useState(() => localStorage.getItem('lookwalk_theme') || 'light');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(() => getCartCount());
   const [wishlistCount, setWishlistCount] = useState(() => getWishlistCount());
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('lookwalk_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,6 +223,14 @@ const Navbar = () => {
               </div>
             )}
           </div>
+
+          <button
+            onClick={toggleTheme}
+            className="icon-btn theme-toggle-btn"
+            aria-label="Toggle Theme"
+          >
+            {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
+          </button>
 
           <Link to="/wishlist" className="icon-btn wishlist-btn" aria-label="Wishlist">
             <Heart size={22} fill={wishlistCount > 0 ? '#ef4444' : 'none'} stroke={wishlistCount > 0 ? '#ef4444' : 'currentColor'} />

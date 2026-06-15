@@ -20,10 +20,21 @@
 }
 
 .navbar-container.scrolled {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-radius: 0;
   border-bottom: 1px solid var(--glass-border);
 }
+
+.theme-toggle-btn {
+  transition: transform var(--transition-fast) !important;
+}
+
+.theme-toggle-btn:hover {
+  transform: rotate(20deg) scale(1.1);
+}
+
 
 .navbar {
   display: flex;

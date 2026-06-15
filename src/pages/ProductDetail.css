@@ -25,11 +25,11 @@
   margin-bottom: 6rem;
   align-items: start;
   
-  /* Apply the same blue gradient as the product card */
-  background: linear-gradient(145deg, #dbeeff 0%, #bfdfff 40%, #a8d4f8 100%);
+  /* Apply the same dynamic theme gradient as the product card */
+  background: var(--bg-gradient);
   border-radius: 28px;
   padding: 3rem;
-  border: 1.5px solid rgba(14, 165, 233, 0.25);
+  border: 1.5px solid var(--glass-border);
   box-shadow: 0 10px 30px rgba(14, 165, 233, 0.06);
 }
 
@@ -81,11 +81,11 @@
 .premium-thumb-btn {
   width: 50px;
   height: 60px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--glass-border);
   padding: 0;
   border-radius: 2px;
   overflow: hidden;
-  background: #f8fafc;
+  background: var(--bg-tertiary);
   cursor: pointer;
   opacity: 0.6;
   transition: opacity 0.2s, border-color 0.2s;
@@ -103,7 +103,7 @@
 .premium-thumb-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* Pagination controls below thumbs */
@@ -163,7 +163,7 @@
 }
 
 .premium-header {
-  border-bottom: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1.5px solid var(--glass-border);
   padding-bottom: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -173,7 +173,7 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -1px;
-  color: #0f172a;
+  color: var(--text-primary);
   line-height: 1;
   margin: 0 0 1rem 0;
 }
@@ -187,7 +187,7 @@
 .premium-price {
   font-size: clamp(1.5rem, 2.5vw, 2.2rem);
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .premium-category-label {
@@ -215,7 +215,7 @@
 .option-label {
   font-size: 0.8rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 0.75rem;
   letter-spacing: 1.5px;
 }
@@ -230,9 +230,9 @@
   min-width: 50px;
   height: 38px;
   padding: 0 1rem;
-  border: 1.5px solid #0f172a;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1.5px solid var(--text-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -246,7 +246,7 @@
 }
 
 .option-box-btn:hover {
-  background: #f8fafc;
+  background: var(--bg-secondary);
 }
 
 .option-box-btn.active {
@@ -264,8 +264,8 @@
 
 .qty-counter {
   display: flex;
-  border: 1.5px solid #0f172a;
-  background: #ffffff;
+  border: 1.5px solid var(--text-primary);
+  background: var(--bg-primary);
   height: 38px;
 }
 
@@ -277,13 +277,13 @@
   justify-content: center;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .qty-btn:hover {
-  background: #f1f5f9;
+  background: var(--bg-secondary);
 }
 
 .qty-val {
@@ -294,9 +294,9 @@
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #0f172a;
-  border-left: 1.5px solid #0f172a;
-  border-right: 1.5px solid #0f172a;
+  color: var(--text-primary);
+  border-left: 1.5px solid var(--text-primary);
+  border-right: 1.5px solid var(--text-primary);
 }
 
 .stock-indicator {
@@ -361,14 +361,14 @@
 
 /* Buy Now - white outline with blue borders */
 .premium-action-btn.secondary {
-  background: #ffffff;
-  border: 2px solid #0f172a;
-  color: #0f172a;
+  background: var(--bg-primary);
+  border: 2px solid var(--text-primary);
+  color: var(--text-primary);
 }
 
 .premium-action-btn.secondary:hover:not(:disabled) {
-  background: #0f172a;
-  color: #ffffff;
+  background: var(--text-primary);
+  color: var(--bg-primary);
 }
 
 .btn-arrow-icon {
@@ -383,11 +383,11 @@
 
 /* Accordion sections */
 .premium-accordions {
-  border-top: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-top: 1.5px solid var(--glass-border);
 }
 
 .accordion-item {
-  border-bottom: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1.5px solid var(--glass-border);
 }
 
 .accordion-trigger {
@@ -399,7 +399,7 @@
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 1.5px;
-  color: #0f172a;
+  color: var(--text-primary);
   background: transparent;
   cursor: pointer;
   text-align: left;

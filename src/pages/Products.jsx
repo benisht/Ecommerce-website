@@ -37,6 +37,8 @@ const Products = () => {
     if (categoryParam) setFilter(categoryParam);
   }, [categoryParam]);
 
+  const [sortBy, setSortBy] = useState('default');
+
   // Reset category filter when search query changes
   useEffect(() => {
     if (searchQuery) setFilter('All');
@@ -60,6 +62,29 @@ const Products = () => {
     );
   }
 
+  // Apply sorting logic based on final computed price
+  const getFinalPrice = (p) => {
+    const price = Number(p.price) || 0;
+    const discount = Number(p.discount_percent) || 0;
+    return discount > 0 ? price * (1 - discount / 100) : price;
+  };
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortBy === 'price-low') {
+      return getFinalPrice(a) - getFinalPrice(b);
+    }
+    if (sortBy === 'price-high') {
+      return getFinalPrice(b) - getFinalPrice(a);
+    }
+    if (sortBy === 'name-a-z') {
+      return (a.name || '').localeCompare(b.name || '');
+    }
+    if (sortBy === 'name-z-a') {
+      return (b.name || '').localeCompare(a.name || '');
+    }
+    return 0;
+  });
+
   const clearSearch = () => {
     setSearchParams({});
   };
@@ -67,7 +92,7 @@ const Products = () => {
   return (
     <div className="page-wrapper container animate-fade-in-up">
       <div className="products-header">
-        {console.info('Rendering Products Grid, count:', filteredProducts.length)}
+        {console.info('Rendering Products Grid, count:', sortedProducts.length)}
         <h1 className="title-glow">OUR <span className="text-accent">COLLECTION</span></h1>
         {searchQuery ? (
           <p className="products-subtitle">
@@ -79,27 +104,44 @@ const Products = () => {
         )}
       </div>
 
-      <div className="products-filter">
-        {dynamicCategories.map(cat => (
-          <button
-            key={cat}
-            className={`filter-btn ${filter === cat ? 'active' : ''}`}
-            onClick={() => setFilter(cat)}
+      <div className="products-controls">
+        <div className="products-filter">
+          {dynamicCategories.map(cat => (
+            <button
+              key={cat}
+              className={`filter-btn ${filter === cat ? 'active' : ''}`}
+              onClick={() => setFilter(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+        <div className="products-sort">
+          <label htmlFor="sort-select">Sort By: </label>
+          <select
+            id="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="sort-select"
           >
-            {cat}
-          </button>
-        ))}
+            <option value="default">Default</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name-a-z">Name: A to Z</option>
+            <option value="name-z-a">Name: Z to A</option>
+          </select>
+        </div>
       </div>
 
       <div className="products-grid">
-        {filteredProducts.map(product => (
+        {sortedProducts.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
 
       {loading ? (
         <div className="no-products"><p>Loading products...</p></div>
-      ) : filteredProducts.length === 0 && (
+      ) : sortedProducts.length === 0 && (
         <div className="no-products">
           <p>{searchQuery ? `No products found for "${searchQuery}".` : 'No gear found for this category.'}</p>
         </div>

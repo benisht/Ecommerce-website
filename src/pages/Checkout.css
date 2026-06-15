@@ -475,7 +475,8 @@
   width: 56px;
   height: 56px;
   min-width: 56px;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
   border-radius: 8px;
   background-color: var(--bg-tertiary);
