@@ -165,12 +165,22 @@ const ProductDetail = () => {
         {/* Left Side: Image Carousel Gallery */}
         <div className="premium-gallery-section">
           <div className="premium-main-image-wrapper">
+            {allImages.length > 1 && (
+              <button className="carousel-arrow prev-on-image" onClick={handlePrevImage} aria-label="Previous image">
+                <ChevronLeft size={24} />
+              </button>
+            )}
             <img 
               src={allImages[activeImageIndex]} 
               alt={product.name} 
               className="premium-main-image" 
               loading="lazy" 
             />
+            {allImages.length > 1 && (
+              <button className="carousel-arrow next-on-image" onClick={handleNextImage} aria-label="Next image">
+                <ChevronRight size={24} />
+              </button>
+            )}
           </div>
           
           {/* Thumbnail Gallery Strip */}
@@ -191,9 +201,6 @@ const ProductDetail = () => {
           {/* Carousel Pagination Controls */}
           {allImages.length > 1 && (
             <div className="premium-carousel-controls">
-              <button className="carousel-arrow" onClick={handlePrevImage} aria-label="Previous image">
-                <ChevronLeft size={20} />
-              </button>
               <div className="carousel-numbers">
                 {allImages.map((_, idx) => (
                   <button
@@ -205,9 +212,6 @@ const ProductDetail = () => {
                   </button>
                 ))}
               </div>
-              <button className="carousel-arrow" onClick={handleNextImage} aria-label="Next image">
-                <ChevronRight size={20} />
-              </button>
             </div>
           )}
         </div>

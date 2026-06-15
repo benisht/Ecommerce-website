@@ -13,9 +13,15 @@
 /* Mobile header adjustments */
 @media (max-width: 768px) {
   .navbar-container {
-    height: var(--header-height-mobile, 60px);
-    background: var(--bg-primary, #fff);
+    height: 72px; /* Increased from 60px to give breathing room */
+    background: var(--bg-primary);
     border-bottom: 1px solid var(--glass-border);
+  }
+  .navbar {
+    padding: 0 1.5rem;
+  }
+  .nav-actions {
+    gap: 1.25rem; /* Better breathing room between action items */
   }
 }
 
@@ -174,7 +180,7 @@
   display: none;
   background: var(--bg-secondary);
   position: absolute;
-  top: var(--header-height);
+  top: 80px;
   left: 0;
   width: 100%;
   padding: 2rem;
@@ -186,6 +192,12 @@
   pointer-events: none;
 }
 
+@media (max-width: 768px) {
+  .mobile-nav {
+    top: 72px;
+  }
+}
+
 .mobile-nav.open {
   transform: translateY(0);
   opacity: 1;
@@ -195,7 +207,7 @@
 .mobile-nav-links {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2.25rem; /* Increased for mobile freedom */
   text-align: center;
 }
 
