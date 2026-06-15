@@ -64,7 +64,7 @@
 
 .carousel-arrow.prev-on-image {
   position: absolute;
-  left: 1rem;
+  left: -3rem; /* move left outside image border */
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
@@ -82,7 +82,7 @@
 
 .carousel-arrow.next-on-image {
   position: absolute;
-  right: 1rem;
+  right: -3rem; /* move right outside image border */
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
@@ -120,6 +120,9 @@
   justify-content: center;
   overflow-x: auto;
   padding: 4px 0;
+  margin-top: 1rem; /* space below main image border */
+  border-top: 1px solid var(--glass-border);
+  padding-top: 0.5rem;
 }
 
 .premium-thumb-btn {

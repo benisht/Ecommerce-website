@@ -10,23 +10,21 @@
   border-bottom: 1px solid transparent;
 }
 
-/* Mobile header adjustments */
-@media (max-width: 768px) {
   .navbar-container {
     height: 64px;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--glass-border);
   }
   .navbar {
-    padding: 0 1rem;
-    gap: 0; /* logo takes flex space, actions stay right */
+    padding: 0 1.5rem;
+    gap: 1rem; /* restore spacing between logo and icons */
   }
   .brand {
-    flex: 1; /* push action icons to the far right */
-    font-size: 1.3rem;
+    /* remove flex to keep original size */
+    font-size: 1.5rem;
   }
   .nav-actions {
-    gap: 0.6rem; /* even spacing between icons */
+    gap: 0.6rem;
     flex-shrink: 0;
   }
   .icon-btn {
@@ -36,7 +34,9 @@
     align-items: center;
     justify-content: center;
   }
-}
+  .mobile-menu-btn {
+    display: none; /* hide hamburger on mobile */
+  }
 
 .navbar-container.scrolled {
   background: var(--glass-bg);
