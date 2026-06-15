@@ -13,15 +13,28 @@
 /* Mobile header adjustments */
 @media (max-width: 768px) {
   .navbar-container {
-    height: 72px; /* Increased from 60px to give breathing room */
+    height: 64px;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--glass-border);
   }
   .navbar {
-    padding: 0 1.5rem;
+    padding: 0 1rem;
+    gap: 0; /* logo takes flex space, actions stay right */
+  }
+  .brand {
+    flex: 1; /* push action icons to the far right */
+    font-size: 1.3rem;
   }
   .nav-actions {
-    gap: 1.25rem; /* Better breathing room between action items */
+    gap: 0.6rem; /* even spacing between icons */
+    flex-shrink: 0;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -47,6 +60,7 @@
   justify-content: space-between;
   align-items: center;
   height: 100%;
+  gap: 1rem;
 }
 
 .brand {
@@ -194,7 +208,7 @@
 
 @media (max-width: 768px) {
   .mobile-nav {
-    top: 72px;
+    top: 64px;
   }
 }
 

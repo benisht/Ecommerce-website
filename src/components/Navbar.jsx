@@ -8,7 +8,7 @@ import { ShoppingCart, Menu, X, Search, Heart, Sun, Moon } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('lookwalk_theme') || 'light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('lookwalk_theme') || 'dark');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(() => getCartCount());
