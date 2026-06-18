@@ -6,14 +6,14 @@
   height: var(--header-height);
   z-index: 1000;
   transition: all var(--transition-slow);
-  background: var(--bg-primary);
+  background: transparent;
   border-bottom: 1px solid transparent;
 }
 
   .navbar-container {
     height: 64px;
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--glass-border);
+    background: transparent;
+    border-bottom: 1px solid transparent;
   }
   .navbar {
     padding: 0 1.5rem;
@@ -46,6 +46,13 @@
   -webkit-backdrop-filter: var(--glass-blur);
   border-radius: 0;
   border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+}
+
+/* When mobile menu is open, give background so menu is readable */
+.navbar-container.menu-open {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .theme-toggle-btn {
@@ -69,10 +76,21 @@
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  transition: color var(--transition-fast), text-shadow var(--transition-fast);
+}
+
+.navbar-container.scrolled .brand {
   color: var(--text-primary);
+  text-shadow: none;
 }
 
 .brand:hover {
+  color: #ffffff;
+}
+
+.navbar-container.scrolled .brand:hover {
   color: var(--text-primary);
 }
 
@@ -91,13 +109,24 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.85);
   position: relative;
   padding: 0.5rem 0;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.navbar-container.scrolled .nav-links a {
+  color: var(--text-secondary);
+  text-shadow: none;
 }
 
 .nav-links a:hover,
 .nav-links a.active {
+  color: #ffffff;
+}
+
+.navbar-container.scrolled .nav-links a:hover,
+.navbar-container.scrolled .nav-links a.active {
   color: var(--text-primary);
 }
 
@@ -126,11 +155,17 @@
 }
 
 .icon-btn {
-  color: var(--text-primary);
+  color: rgba(255,255,255,0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: color var(--transition-fast);
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+}
+
+.navbar-container.scrolled .icon-btn {
+  color: var(--text-primary);
+  filter: none;
 }
 
 .icon-btn:hover {

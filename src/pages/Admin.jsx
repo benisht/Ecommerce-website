@@ -61,6 +61,10 @@ const Admin = () => {
   // Banner state removed
   const [stdShipping, setStdShipping] = useState(300);
   const [uploadingKey, setUploadingKey] = useState('');
+  // Instagram Reels
+  const [igReels, setIgReels] = useState([]);
+  const [newReelUrl, setNewReelUrl] = useState('');
+  const [reelsSaving, setReelsSaving] = useState(false);
   const initialForm = {
     name: '', price: '', category: '', image: '', images: [], description: '',
     in_stock: true, sizes: 'S, M, L, XL', variants: [], featured: false
@@ -134,9 +138,38 @@ const Admin = () => {
       if (a1) setAbout1(a1);
       const a2 = await fetchSettings('lookwalk_about_img_2');
       if (a2) setAbout2(a2);
+      const reels = await fetchSettings('lookwalk_ig_reels');
+      if (Array.isArray(reels)) setIgReels(reels);
     } catch (err) {
       console.error('Error loading centralized settings:', err);
     }
+  };
+
+  // ── INSTAGRAM REELS HELPERS ────────────────────────────────────────────────
+  const addReel = () => {
+    const url = newReelUrl.trim();
+    if (!url) return;
+    if (!url.includes('instagram.com')) {
+      alert('Please enter a valid Instagram URL.');
+      return;
+    }
+    setIgReels(prev => [...prev, url]);
+    setNewReelUrl('');
+  };
+
+  const removeReel = (idx) => {
+    setIgReels(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const saveReels = async () => {
+    setReelsSaving(true);
+    try {
+      await updateSettings('lookwalk_ig_reels', igReels);
+      alert('Instagram reels saved successfully!');
+    } catch {
+      alert('Failed to save reels.');
+    }
+    setReelsSaving(false);
   };
 
   useEffect(() => {
@@ -1060,40 +1093,98 @@ const Admin = () => {
             TAB: APPEARANCE (DATABASE BACKED)
         ══════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'appearance' && (
-          <div className="admin-form-container glass-panel" style={{ maxWidth: '600px' }}>
-            <h2 className="flex-center gap-2" style={{ justifyContent: 'flex-start' }}><Monitor size={20} /> Website Appearance</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Update images and live announcement settings. Changes are saved globally in PostgreSQL.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '680px' }}>
 
-            <div style={{ marginBottom: '2.5rem', padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>🚚 Shipping Cost Configuration</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Fixed local shipping within 30km is ₹150. Set standard shipping for outside 30km radius.</p>
-              <div className="form-group">
-                <label>Standard Shipping Rate (₹)</label>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <input type="number" className="futuristic-input" value={stdShipping} onChange={e => setStdShipping(Number(e.target.value))} style={{ flex: 1 }} />
-                  <button className="btn-primary" onClick={saveShippingRate}>Update Rate</button>
+            {/* ── Images ── */}
+            <div className="admin-form-container glass-panel">
+              <h2 className="flex-center gap-2" style={{ justifyContent: 'flex-start' }}><Monitor size={20} /> Website Appearance</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Update images and announcement settings. Changes are saved globally in PostgreSQL.</p>
+
+              <div style={{ marginBottom: '2.5rem', padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+                <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>🚚 Shipping Cost Configuration</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Fixed local shipping within 30km is ₹150. Set standard shipping for outside 30km radius.</p>
+                <div className="form-group">
+                  <label>Standard Shipping Rate (₹)</label>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <input type="number" className="futuristic-input" value={stdShipping} onChange={e => setStdShipping(Number(e.target.value))} style={{ flex: 1 }} />
+                    <button className="btn-primary" onClick={saveShippingRate}>Update Rate</button>
+                  </div>
                 </div>
               </div>
+
+              {[
+                { label: 'Home Page Hero Background', key: 'lookwalk_hero_bg', val: heroBg, setter: setHeroBg },
+                { label: 'Home Page "What Makes Us Different" Image', key: 'lookwalk_ethos_img', val: ethosImg, setter: setEthosImg },
+                { label: 'About Us — Image 1', key: 'lookwalk_about_img_1', val: about1, setter: setAbout1 },
+                { label: 'About Us — Image 2', key: 'lookwalk_about_img_2', val: about2, setter: setAbout2 },
+              ].map(({ label, key, val, setter }) => (
+                <div key={key} className="form-group" style={{ marginBottom: '2rem' }}>
+                  <label>{label}</label>
+                  {val && <img src={val} alt="Preview" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />}
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', flex: 1 }}>
+                      <button type="button" className="btn-primary flex-center gap-2" style={{ width: '100%' }}><Upload size={18} /> Upload Image</button>
+                      <input type="file" accept="image/*" onChange={e => handleAppearanceUpload(e, key, setter)} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+                    </div>
+                    {val && <button type="button" className="btn-secondary" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => removeAppearanceSetting(key, setter)}>Remove</button>}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {[
-              { label: 'Home Page Hero Background', key: 'lookwalk_hero_bg', val: heroBg, setter: setHeroBg },
-              { label: 'Home Page "What Makes Us Different" Image', key: 'lookwalk_ethos_img', val: ethosImg, setter: setEthosImg },
-              { label: 'About Us — Image 1', key: 'lookwalk_about_img_1', val: about1, setter: setAbout1 },
-              { label: 'About Us — Image 2', key: 'lookwalk_about_img_2', val: about2, setter: setAbout2 },
-            ].map(({ label, key, val, setter }) => (
-              <div key={key} className="form-group" style={{ marginBottom: '2rem' }}>
-                <label>{label}</label>
-                {val && <img src={val} alt="Preview" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />}
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', flex: 1 }}>
-                    <button type="button" className="btn-primary flex-center gap-2" style={{ width: '100%' }}><Upload size={18} /> Upload Image</button>
-                    <input type="file" accept="image/*" onChange={e => handleAppearanceUpload(e, key, setter)} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
-                  </div>
-                  {val && <button type="button" className="btn-secondary" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => removeAppearanceSetting(key, setter)}>Remove</button>}
-                </div>
+            {/* ── Instagram Reels Manager ── */}
+            <div className="admin-form-container glass-panel">
+              <h2 className="flex-center gap-2" style={{ justifyContent: 'flex-start', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '1.3rem' }}>📱</span> Instagram Reels
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.75rem' }}>
+                Paste Instagram Reel or Post URLs below. They will appear on the Home page in the "As Seen On Instagram" section.
+                Example: <code style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.78rem' }}>https://www.instagram.com/reel/ABC123/</code>
+              </p>
+
+              {/* Add new reel */}
+              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <input
+                  type="url"
+                  className="futuristic-input"
+                  placeholder="https://www.instagram.com/reel/..."
+                  value={newReelUrl}
+                  onChange={e => setNewReelUrl(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addReel()}
+                  style={{ flex: 1 }}
+                />
+                <button className="btn-primary flex-center gap-1" onClick={addReel} style={{ whiteSpace: 'nowrap' }}>
+                  <Plus size={16} /> Add Reel
+                </button>
               </div>
-            ))}
+
+              {/* Reel list */}
+              {igReels.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1.5rem 0', fontSize: '0.9rem' }}>No reels added yet. Paste a link above to get started.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '1.5rem' }}>
+                  {igReels.map((url, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '10px' }}>
+                      <span style={{ background: 'rgba(225,48,108,0.15)', color: '#e1306c', border: '1px solid rgba(225,48,108,0.3)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: '700', flexShrink: 0 }}>#{idx + 1}</span>
+                      <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
+                      <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', fontSize: '0.78rem', flexShrink: 0 }}>Preview</a>
+                      <button onClick={() => removeReel(idx)} className="icon-btn-small delete-btn" title="Remove reel"><Trash2 size={15} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                className="btn-primary flex-center gap-2"
+                onClick={saveReels}
+                disabled={reelsSaving}
+                style={{ width: '100%', opacity: reelsSaving ? 0.7 : 1 }}
+              >
+                {reelsSaving ? <Loader size={18} className="animate-spin" /> : <Upload size={18} />}
+                {reelsSaving ? 'Saving...' : `Save ${igReels.length} Reel${igReels.length !== 1 ? 's' : ''} to Database`}
+              </button>
+            </div>
+
           </div>
         )}
 

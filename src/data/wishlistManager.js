@@ -1,56 +1,98 @@
-// wishlistManager.js
-// Manages the liked/wishlisted products using localStorage
+// src/data/wishlistManager.js
 
 const WISHLIST_KEY = 'lookwalk_wishlist';
 
 /**
- * Get all wishlisted product IDs as a Set.
+ * Get wishlist as Set
  */
 export const getWishlist = () => {
   try {
     const raw = localStorage.getItem(WISHLIST_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
+    const ids = raw ? JSON.parse(raw) : [];
+
+    // Remove duplicates automatically
+    return new Set(ids.map(String));
+  } catch (error) {
+    console.error('Wishlist error:', error);
     return new Set();
   }
 };
 
 /**
- * Get all wishlisted product IDs as an array.
+ * Save wishlist
+ */
+const saveWishlist = (wishlist) => {
+  localStorage.setItem(
+    WISHLIST_KEY,
+    JSON.stringify([...wishlist])
+  );
+
+  window.dispatchEvent(
+    new CustomEvent('wishlistUpdated')
+  );
+};
+
+/**
+ * Get wishlist IDs
  */
 export const getWishlistIds = () => {
-  return Array.from(getWishlist());
+  return [...getWishlist()];
 };
 
 /**
- * Check if a product is wishlisted.
+ * Check if product is wishlisted
  */
 export const isWishlisted = (productId) => {
-  return getWishlist().has(productId);
+  return getWishlist().has(String(productId));
 };
 
 /**
- * Add or remove a product from the wishlist. Returns new wishlisted state.
+ * Toggle wishlist
  */
 export const toggleWishlist = (productId) => {
   const wishlist = getWishlist();
-  let wishlisted;
+
+  productId = String(productId);
+
+  let wishlisted = false;
+
   if (wishlist.has(productId)) {
     wishlist.delete(productId);
-    wishlisted = false;
   } else {
     wishlist.add(productId);
     wishlisted = true;
   }
-  localStorage.setItem(WISHLIST_KEY, JSON.stringify(Array.from(wishlist)));
-  // Notify all listeners
-  window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+
+  saveWishlist(wishlist);
+
   return wishlisted;
 };
 
 /**
- * Get the total count of wishlisted products.
+ * Remove product from wishlist
+ */
+export const removeFromWishlist = (productId) => {
+  const wishlist = getWishlist();
+
+  wishlist.delete(String(productId));
+
+  saveWishlist(wishlist);
+};
+
+/**
+ * Clear wishlist
+ */
+export const clearWishlist = () => {
+  localStorage.removeItem(WISHLIST_KEY);
+
+  window.dispatchEvent(
+    new CustomEvent('wishlistUpdated')
+  );
+};
+
+/**
+ * Get total wishlist count
  */
 export const getWishlistCount = () => {
-  return getWishlist().size;
+  return getWishlistIds().length;
 };
