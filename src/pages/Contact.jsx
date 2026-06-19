@@ -43,15 +43,45 @@ const Contact = () => {
           </div>
 
           <div className="map-container" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-            <iframe 
-              src="https://maps.app.goo.gl/Jc1tN8PFonFuk3vr6" 
-              width="100%" 
-              height="250" 
-              style={{ border: 0, borderRadius: '8px' }} 
-              allowFullScreen="" 
-              loading="lazy"
-              title="Location Map"
-            ></iframe>
+            <a
+              href="https://maps.app.goo.gl/rV9tzB6bJPdQ22bC9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="map-link-card"
+              style={{
+                display: 'block',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                border: '1px solid var(--glass-border)',
+                textDecoration: 'none',
+                position: 'relative',
+                cursor: 'pointer'
+              }}
+            >
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3946.071850117496!2d77.47271457497139!3d8.483161691563264!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b04f1412d287687%3A0x6b406e40d4a9cc1b!2sManakudy%2C%20Tamil%20Nadu%20629602!5e0!3m2!1sen!2sin!4v1718790000000!5m2!1sen!2sin"
+                width="100%"
+                height="260"
+                style={{ border: 0, display: 'block', pointerEvents: 'none' }}
+                loading="lazy"
+                title="LOOKWALK Shop Location"
+              />
+              <div style={{
+                position: 'absolute',
+                bottom: 0, left: 0, right: 0,
+                background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                color: '#fff',
+                fontSize: '0.9rem',
+                fontWeight: 600
+              }}>
+                <MapPin size={18} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
+                Click to open in Google Maps
+              </div>
+            </a>
           </div>
 
           <div className="info-block">

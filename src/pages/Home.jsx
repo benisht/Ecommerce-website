@@ -13,26 +13,9 @@ const Home = () => {
   const [discountedProducts, setDiscountedProducts] = useState([]);
   const [activeSlide, setActiveSlide] = useState(0);
   const [categoryData, setCategoryData] = useState([]); // [{name, image}]
-  const [reelLinks, setReelLinks] = useState([]);
-  const [reelPreviews, setReelPreviews] = useState([]); // {url, thumbnail, html}
-  const [showEmbed, setShowEmbed] = useState([]); // bool per reel
 
-  // Helper: fetch Instagram oEmbed data for preview thumbnails / embed HTML
-  const previewReels = async (links) => {
-    const promises = links.map(async (url) => {
-      try {
-        const resp = await fetch(`https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`);
-        if (!resp.ok) return { url, thumbnail: null, html: null };
-        const data = await resp.json();
-        return { url, thumbnail: data.thumbnail_url || null, html: data.html || null };
-      } catch {
-        return { url, thumbnail: null, html: null };
-      }
-    });
-    const results = await Promise.all(promises);
-    setReelPreviews(results);
-    setShowEmbed(new Array(results.length).fill(false));
-  };
+
+
 
   // Category scroll ref
   const catTrackRef = useRef(null);
@@ -90,11 +73,6 @@ const Home = () => {
         if (hero) setHeroBg(hero);
         const ethos = await fetchSettings('lookwalk_ethos_img');
         if (ethos) setEthosImg(ethos);
-        const reels = await fetchSettings('lookwalk_ig_reels');
-        if (Array.isArray(reels)) {
-          setReelLinks(reels);
-          await previewReels(reels);
-        }
       } catch (err) {
         console.error('Failed to load settings:', err);
       }
@@ -102,18 +80,7 @@ const Home = () => {
     loadAll();
   }, []);
 
-  // Render helper for reel card click
-  const handleReelClick = (e, idx) => {
-    e.preventDefault();
-    const preview = reelPreviews[idx];
-    if (preview?.html) {
-      const newShow = [...showEmbed];
-      newShow[idx] = true;
-      setShowEmbed(newShow);
-    } else if (preview?.url) {
-      window.open(preview.url, '_blank');
-    }
-  };
+
 
   return (
     <div className="page-wrapper home-page">
@@ -262,53 +229,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* INSTAGRAM REELS */}
-      {reelLinks.length > 0 && (
-        <section className="reels-section">
-          <div className="reels-section-inner">
-            <div className="section-header">
-              <h2 className="section-title">
-                AS SEEN ON <span className="text-accent">INSTAGRAM</span>
-              </h2>
-              <div className="reels-label">
-                <span className="reels-label-dot" />@lookwalk
-              </div>
-            </div>
-            <div className="reels-grid">
-              {reelPreviews.map((preview, idx) => (
-                <div key={idx} className="reel-card-wrapper">
-                  {showEmbed[idx] && preview.html ? (
-                    <div className="reel-embed" dangerouslySetInnerHTML={{ __html: preview.html }} />
-                  ) : (
-                    <a
-                      href={preview.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="reel-card"
-                      onClick={(e) => handleReelClick(e, idx)}
-                    >
-                      <div className="reel-card-inner">
-                        {preview.thumbnail ? (
-                          <img src={preview.thumbnail} alt={`Reel ${idx + 1}`} className="reel-preview-img" />
-                        ) : (
-                          <span className="reel-ig-icon">📸</span>
-                        )}
-                        <div className="reel-play-icon">
-                          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                        <span className="reel-card-label">Watch Reel</span>
-                        <span className="reel-number-badge">#{idx + 1}</span>
-                      </div>
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+
 
       {/* BRAND ETHOS */}
       <section className="ethos-section glass-panel">

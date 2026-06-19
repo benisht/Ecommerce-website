@@ -61,10 +61,7 @@ const Admin = () => {
   // Banner state removed
   const [stdShipping, setStdShipping] = useState(300);
   const [uploadingKey, setUploadingKey] = useState('');
-  // Instagram Reels
-  const [igReels, setIgReels] = useState([]);
-  const [newReelUrl, setNewReelUrl] = useState('');
-  const [reelsSaving, setReelsSaving] = useState(false);
+
   const initialForm = {
     name: '', price: '', category: '', image: '', images: [], description: '',
     in_stock: true, sizes: 'S, M, L, XL', variants: [], featured: false
@@ -138,39 +135,13 @@ const Admin = () => {
       if (a1) setAbout1(a1);
       const a2 = await fetchSettings('lookwalk_about_img_2');
       if (a2) setAbout2(a2);
-      const reels = await fetchSettings('lookwalk_ig_reels');
-      if (Array.isArray(reels)) setIgReels(reels);
+
     } catch (err) {
       console.error('Error loading centralized settings:', err);
     }
   };
 
-  // ── INSTAGRAM REELS HELPERS ────────────────────────────────────────────────
-  const addReel = () => {
-    const url = newReelUrl.trim();
-    if (!url) return;
-    if (!url.includes('instagram.com')) {
-      alert('Please enter a valid Instagram URL.');
-      return;
-    }
-    setIgReels(prev => [...prev, url]);
-    setNewReelUrl('');
-  };
 
-  const removeReel = (idx) => {
-    setIgReels(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const saveReels = async () => {
-    setReelsSaving(true);
-    try {
-      await updateSettings('lookwalk_ig_reels', igReels);
-      alert('Instagram reels saved successfully!');
-    } catch {
-      alert('Failed to save reels.');
-    }
-    setReelsSaving(false);
-  };
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -1132,58 +1103,6 @@ const Admin = () => {
               ))}
             </div>
 
-            {/* ── Instagram Reels Manager ── */}
-            <div className="admin-form-container glass-panel">
-              <h2 className="flex-center gap-2" style={{ justifyContent: 'flex-start', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1.3rem' }}>📱</span> Instagram Reels
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.75rem' }}>
-                Paste Instagram Reel or Post URLs below. They will appear on the Home page in the "As Seen On Instagram" section.
-                Example: <code style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.78rem' }}>https://www.instagram.com/reel/ABC123/</code>
-              </p>
-
-              {/* Add new reel */}
-              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <input
-                  type="url"
-                  className="futuristic-input"
-                  placeholder="https://www.instagram.com/reel/..."
-                  value={newReelUrl}
-                  onChange={e => setNewReelUrl(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addReel()}
-                  style={{ flex: 1 }}
-                />
-                <button className="btn-primary flex-center gap-1" onClick={addReel} style={{ whiteSpace: 'nowrap' }}>
-                  <Plus size={16} /> Add Reel
-                </button>
-              </div>
-
-              {/* Reel list */}
-              {igReels.length === 0 ? (
-                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1.5rem 0', fontSize: '0.9rem' }}>No reels added yet. Paste a link above to get started.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '1.5rem' }}>
-                  {igReels.map((url, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '10px' }}>
-                      <span style={{ background: 'rgba(225,48,108,0.15)', color: '#e1306c', border: '1px solid rgba(225,48,108,0.3)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: '700', flexShrink: 0 }}>#{idx + 1}</span>
-                      <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
-                      <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', fontSize: '0.78rem', flexShrink: 0 }}>Preview</a>
-                      <button onClick={() => removeReel(idx)} className="icon-btn-small delete-btn" title="Remove reel"><Trash2 size={15} /></button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                className="btn-primary flex-center gap-2"
-                onClick={saveReels}
-                disabled={reelsSaving}
-                style={{ width: '100%', opacity: reelsSaving ? 0.7 : 1 }}
-              >
-                {reelsSaving ? <Loader size={18} className="animate-spin" /> : <Upload size={18} />}
-                {reelsSaving ? 'Saving...' : `Save ${igReels.length} Reel${igReels.length !== 1 ? 's' : ''} to Database`}
-              </button>
-            </div>
 
           </div>
         )}
