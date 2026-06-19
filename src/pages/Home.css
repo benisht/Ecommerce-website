@@ -18,19 +18,25 @@
   justify-content: center;
   /* background-image set dynamically in React */
   background-size: cover;
-  background-position: center top;
+  background-position: center center;
   background-attachment: scroll;
+  background-repeat: no-repeat;
 }
 
 @media (max-width: 900px) {
   .hero-section {
     min-height: 500px;
+    background-position: center center;
+    background-size: cover;
   }
 }
 
 @media (max-width: 600px) {
   .hero-section {
-    min-height: 450px;
+    min-height: 100svh;
+    height: 100svh;
+    background-position: center center;
+    background-size: cover;
   }
   .product-card {
     max-width: 100%;
@@ -657,47 +663,51 @@
   box-shadow: 0 16px 40px rgba(225, 48, 108, 0.25);
 }
 
-.reel-iframe-wrapper {
+/* Reel card inner layout */
+.reel-card-inner {
   width: 100%;
   height: 100%;
-  pointer-events: none;
-}
-
-.reel-iframe-wrapper iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
-}
-
-.reel-overlay {
-  position: absolute;
-  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.15);
-  transition: background 0.2s ease;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  position: relative;
+  overflow: hidden;
 }
 
-.reel-overlay:hover {
-  background: rgba(0,0,0,0.35);
+.reel-card-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(225,48,108,0.15) 0%, rgba(131,58,180,0.15) 50%, rgba(253,29,29,0.1) 100%);
+}
+
+.reel-ig-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 12px rgba(225, 48, 108, 0.6));
 }
 
 .reel-play-icon {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: rgba(225, 48, 108, 0.9);
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px rgba(225, 48, 108, 0.5);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 0.75rem;
 }
 
-.reel-overlay:hover .reel-play-icon {
-  transform: scale(1.1);
+.reel-card:hover .reel-play-icon {
+  transform: scale(1.12);
   box-shadow: 0 6px 30px rgba(225, 48, 108, 0.7);
 }
 
@@ -705,21 +715,62 @@
   width: 22px;
   height: 22px;
   fill: #fff;
-  margin-left: 3px;
+  margin-left: 4px;
+}
+
+.reel-card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 2;
 }
 
 .reel-ig-badge {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(225, 48, 108, 0.85);
+  background: linear-gradient(135deg, #f09433, #bc1888);
   border-radius: 6px;
   padding: 3px 7px;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.5px;
   backdrop-filter: blur(4px);
+  z-index: 5;
+}
+
+.reel-number-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.45);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.8);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.12);
+  z-index: 5;
+}
+
+.reel-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+  z-index: 1;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* Responsive */

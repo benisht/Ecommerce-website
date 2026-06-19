@@ -5,17 +5,7 @@ import { fetchProducts, fetchSettings, fetchCategories } from '../data/apiServic
 import { setSEOTags } from '../utils/seo';
 import './Home.css';
 
-/* ── helper: convert any Instagram reel/post URL → embed URL ───────── */
-const toEmbedUrl = (url) => {
-  if (!url) return null;
-  const cleaned = url.trim().replace(/\/$/, '');
-  // Already an embed URL
-  if (cleaned.includes('/embed')) return cleaned;
-  // Reel or post
-  const match = cleaned.match(/instagram\.com\/(reel|p)\/([\w-]+)/);
-  if (match) return `https://www.instagram.com/${match[1]}/${match[2]}/embed/`;
-  return null;
-};
+
 
 const Home = () => {
   const [heroBg, setHeroBg] = useState('/hero-bg.png');
@@ -248,8 +238,7 @@ const Home = () => {
             </div>
             <div className="reels-grid">
               {reelLinks.map((url, idx) => {
-                const embedUrl = toEmbedUrl(url);
-                if (!embedUrl) return null;
+                if (!url) return null;
                 return (
                   <a
                     key={idx}
@@ -259,25 +248,18 @@ const Home = () => {
                     className="reel-card"
                     aria-label={`Watch reel ${idx + 1} on Instagram`}
                   >
-                    <div className="reel-iframe-wrapper">
-                      <iframe
-                        src={embedUrl}
-                        title={`Instagram Reel ${idx + 1}`}
-                        frameBorder="0"
-                        scrolling="no"
-                        allowTransparency="true"
-                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="reel-overlay">
+                    <div className="reel-card-inner">
+                      <div className="reel-shimmer" />
+                      <span className="reel-ig-icon">📸</span>
                       <div className="reel-play-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path d="M8 5v14l11-7z" />
                         </svg>
                       </div>
+                      <span className="reel-card-label">Watch Reel</span>
                     </div>
                     <span className="reel-ig-badge">▶ REEL</span>
+                    <span className="reel-number-badge">#{idx + 1}</span>
                   </a>
                 );
               })}
