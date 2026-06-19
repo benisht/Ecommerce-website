@@ -42,6 +42,18 @@ const Contact = () => {
             </div>
           </div>
 
+          <div className="map-container" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+            <iframe 
+              src="https://maps.app.goo.gl/Jc1tN8PFonFuk3vr6" 
+              width="100%" 
+              height="250" 
+              style={{ border: 0, borderRadius: '8px' }} 
+              allowFullScreen="" 
+              loading="lazy"
+              title="Location Map"
+            ></iframe>
+          </div>
+
           <div className="info-block">
             <Mail className="text-accent" size={24} />
             <div>
