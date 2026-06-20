@@ -38,6 +38,10 @@ const Checkout = () => {
     return () => window.removeEventListener('cartUpdated', reloadCart);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step, isComplete]);
+
   const subtotal = cartItems.reduce((sum, item) => {
     const price = item.discount_percent > 0 
       ? Number(item.price) * (1 - item.discount_percent / 100)
