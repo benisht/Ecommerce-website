@@ -55,9 +55,14 @@ const Home = () => {
           setFeaturedProducts(sorted.slice(0, 10));
           setDiscountedProducts(products.filter((p) => p.discount_percent > 0));
 
-          // Build category image map
+          // Build category image map (prioritizing featured products so the user can choose category images)
           const catMap = {};
-          products.forEach((p) => {
+          const sortedForCategories = [...products].sort((a, b) => {
+            if (a.featured && !b.featured) return -1;
+            if (!a.featured && b.featured) return 1;
+            return 0;
+          });
+          sortedForCategories.forEach((p) => {
             if (p.category && !catMap[p.category]) {
               catMap[p.category] = p.image;
             }
@@ -216,7 +221,7 @@ const Home = () => {
       <section className="featured-section container">
         <div className="section-header">
           <h2 className="section-title">
-            TRENDING <span className="text-accent">NOW</span>
+            TOP <span className="text-accent">SELLERS</span>
           </h2>
           <Link to="/products" className="view-all-link">
             View All Products &rarr;
