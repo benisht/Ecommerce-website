@@ -31,7 +31,7 @@
 
 .about-image-grid img {
   width: 100%;
-  height: 350px;
+  height: 480px;
   object-fit: cover;
   border-radius: 16px;
   transition: transform var(--transition-slow);

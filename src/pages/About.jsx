@@ -5,7 +5,6 @@ import './About.css';
 
 const About = () => {
   const [about1, setAbout1] = useState('/hero-bg.png');
-  const [about2, setAbout2] = useState('/hero-bg.png');
 
   useEffect(() => {
     // Set About Page SEO Tags
@@ -18,8 +17,6 @@ const About = () => {
       try {
         const a1 = await fetchSettings('lookwalk_about_img_1');
         if (a1) setAbout1(a1);
-        const a2 = await fetchSettings('lookwalk_about_img_2');
-        if (a2) setAbout2(a2);
       } catch (err) {
         console.error('Failed to load about settings:', err);
       }
@@ -38,7 +35,6 @@ const About = () => {
       <div className="about-content">
         <div className="about-image-grid">
           <img src={about1} alt="Futuristic Studio" className="glass-panel" loading="lazy" />
-          <img src={about2} alt="Materials" className="glass-panel" style={{ marginTop: '2rem' }} loading="lazy" />
         </div>
 
         <div className="about-text glass-panel">

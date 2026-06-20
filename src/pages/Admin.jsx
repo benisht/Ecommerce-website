@@ -57,7 +57,6 @@ const Admin = () => {
   const [heroBg, setHeroBg] = useState('');
   const [ethosImg, setEthosImg] = useState('');
   const [about1, setAbout1] = useState('');
-  const [about2, setAbout2] = useState('');
   // Banner state removed
   const [stdShipping, setStdShipping] = useState(300);
   const [uploadingKey, setUploadingKey] = useState('');
@@ -133,8 +132,6 @@ const Admin = () => {
       if (e) setEthosImg(e);
       const a1 = await fetchSettings('lookwalk_about_img_1');
       if (a1) setAbout1(a1);
-      const a2 = await fetchSettings('lookwalk_about_img_2');
-      if (a2) setAbout2(a2);
 
     } catch (err) {
       console.error('Error loading centralized settings:', err);
@@ -1087,7 +1084,6 @@ const Admin = () => {
                 { label: 'Home Page Hero Background', key: 'lookwalk_hero_bg', val: heroBg, setter: setHeroBg },
                 { label: 'Home Page "What Makes Us Different" Image', key: 'lookwalk_ethos_img', val: ethosImg, setter: setEthosImg },
                 { label: 'About Us — Image 1', key: 'lookwalk_about_img_1', val: about1, setter: setAbout1 },
-                { label: 'About Us — Image 2', key: 'lookwalk_about_img_2', val: about2, setter: setAbout2 },
               ].map(({ label, key, val, setter }) => (
                 <div key={key} className="form-group" style={{ marginBottom: '2rem' }}>
                   <label>{label}</label>
