@@ -180,3 +180,57 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
+
+/* ── Small Icon Buttons (Edit / Delete) ── */
+.icon-btn-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  cursor: pointer;
+}
+
+[data-theme='light'] .icon-btn-small {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-primary);
+}
+
+.icon-btn-small:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.08);
+}
+
+[data-theme='light'] .icon-btn-small:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.icon-btn-small.delete-btn {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.icon-btn-small.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25) !important;
+}
+
+.icon-btn-small.edit-btn {
+  color: var(--accent-color) !important;
+  border-color: var(--glass-border) !important;
+}
+
+.icon-btn-small.edit-btn:hover {
+  background: rgba(14, 165, 233, 0.15) !important;
+  color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.25) !important;
+}
