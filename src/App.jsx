@@ -28,7 +28,7 @@ function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/checkout" element={<Checkout />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/lookwalk-ops-portal" element={<Admin />} />
         <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/wishlist" element={<Wishlist />} />
       </Routes>

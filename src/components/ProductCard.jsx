@@ -60,13 +60,6 @@ const ProductCard = ({ product }) => {
         <Link to={`/products/${product.id}`} className="product-card-image-link">
           <img src={product.image} alt={product.name} className="product-card-image" />
         </Link>
-
-        {/* Indicator dots */}
-        <div className="product-card-dots">
-          <span className="dot active"></span>
-          <span className="dot"></span>
-          <span className="dot"></span>
-        </div>
       </div>
 
       <div className="product-card-bottom">

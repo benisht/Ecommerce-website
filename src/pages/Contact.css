@@ -117,3 +117,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+.input-error {
+  border-color: #ff4a4a !important;
+  box-shadow: 0 0 10px rgba(255, 74, 74, 0.2) !important;
+  background: rgba(255, 74, 74, 0.05) !important;
+}
+
+.error-text {
+  color: #ff4a4a;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  letter-spacing: 0.5px;
+  animation: fadeIn 0.2s ease-in-out;
+}

@@ -131,7 +131,7 @@ const Navbar = () => {
   ];
 
   return (
-    <header className={`navbar-container ${isScrolled ? 'scrolled glass-panel' : ''} ${isMobileMenuOpen ? 'menu-open' : ''}`}>
+    <header className={`navbar-container ${(isScrolled || location.pathname !== '/') ? 'scrolled glass-panel' : ''} ${isMobileMenuOpen ? 'menu-open' : ''}`}>
       <div className="navbar container">
         <Link to="/" className="brand title-glow">
           LOOKWALK

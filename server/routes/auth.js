@@ -4,9 +4,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const db = require('../db');
 const { JWT_SECRET } = require('../middleware/auth');
+const rateLimiter = require('../middleware/rateLimiter');
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', rateLimiter, async (req, res) => {
   const { userId, password } = req.body;
 
   if (!userId || !password) {
@@ -28,7 +29,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '1h' }
     );
 
     res.json({
@@ -48,6 +49,9 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/seed-admin
 router.post('/seed-admin', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Seeding admin accounts is disabled in production.' });
+  }
   try {
     const result = await db.query('SELECT COUNT(*) as count FROM users');
     const userCount = parseInt(result.rows[0].count);

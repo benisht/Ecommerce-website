@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'lookwalk_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('FATAL CONFIG ERROR: JWT_SECRET environment variable is not defined.');
+}
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];

@@ -1,7 +1,7 @@
 // src/pages/ProductDetail.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { ArrowLeft, Loader, ChevronLeft, ChevronRight, Play, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { fetchProductById } from '../data/apiService';
 import { addToCart } from '../data/cartManager';
 import './ProductDetail.css';
@@ -18,9 +18,23 @@ const ProductDetail = () => {
   const [selectedStock, setSelectedStock] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showCartPopup, setShowCartPopup] = useState(false);
+  const [addedItemDetails, setAddedItemDetails] = useState(null);
   
   // Accordion state
   const [activeAccordion, setActiveAccordion] = useState(null);
+
+  const thumbnailStripRef = useRef(null);
+
+  const scrollThumbnails = (direction) => {
+    if (thumbnailStripRef.current) {
+      const scrollAmount = 90;
+      thumbnailStripRef.current.scrollBy({
+        top: direction === 'up' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Load product data
   useEffect(() => {
@@ -137,7 +151,17 @@ const ProductDetail = () => {
     }
     const finalQty = Math.min(quantity, selectedStock);
     addToCart(product, size, color, finalQty, selectedStock);
-    alert(`${product.name} added to cart!`);
+    
+    setAddedItemDetails({
+      name: product.name,
+      image: allImages[activeImageIndex] || product.image,
+      size,
+      color,
+      quantity: finalQty,
+      price: product.price,
+      discount_percent: product.discount_percent || 0
+    });
+    setShowCartPopup(true);
   };
 
   const handleBuyNow = () => {
@@ -164,56 +188,68 @@ const ProductDetail = () => {
       <div className="premium-detail-layout">
         {/* Left Side: Image Carousel Gallery */}
         <div className="premium-gallery-section">
+          {/* Thumbnail Gallery Strip on the left */}
+          {allImages.length > 1 && (
+            <div className="thumbnail-strip-wrapper">
+              {allImages.length > 4 && (
+                <button 
+                  className="thumb-scroll-btn up" 
+                  onClick={() => scrollThumbnails('up')}
+                  aria-label="Scroll thumbnails up"
+                >
+                  <ChevronUp size={14} />
+                </button>
+              )}
+              
+              <div className="premium-thumbnail-strip" ref={thumbnailStripRef}>
+                {allImages.map((img, idx) => (
+                  <button 
+                    key={idx}
+                    className={`premium-thumb-btn ${idx === activeImageIndex ? 'active' : ''}`}
+                    onClick={() => setActiveImageIndex(idx)}
+                  >
+                    <img src={img} alt={`Thumb ${idx + 1}`} className="premium-thumb-img" />
+                  </button>
+                ))}
+              </div>
+
+              {allImages.length > 4 && (
+                <button 
+                  className="thumb-scroll-btn down" 
+                  onClick={() => scrollThumbnails('down')}
+                  aria-label="Scroll thumbnails down"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Main Image on the right */}
           <div className="premium-main-image-wrapper">
+            {product.discount_percent > 0 && (
+              <span className="detail-sale-badge">Sale</span>
+            )}
+            
             {allImages.length > 1 && (
               <button className="carousel-arrow prev-on-image" onClick={handlePrevImage} aria-label="Previous image">
                 <ChevronLeft size={24} />
               </button>
             )}
+            
             <img 
               src={allImages[activeImageIndex]} 
               alt={product.name} 
               className="premium-main-image" 
               loading="lazy" 
             />
+            
             {allImages.length > 1 && (
               <button className="carousel-arrow next-on-image" onClick={handleNextImage} aria-label="Next image">
                 <ChevronRight size={24} />
               </button>
             )}
           </div>
-          
-          {/* Thumbnail Gallery Strip */}
-          {allImages.length > 1 && (
-            <div className="premium-thumbnail-strip">
-              {allImages.map((img, idx) => (
-                <button 
-                  key={idx}
-                  className={`premium-thumb-btn ${idx === activeImageIndex ? 'active' : ''}`}
-                  onClick={() => setActiveImageIndex(idx)}
-                >
-                  <img src={img} alt={`Thumb ${idx + 1}`} className="premium-thumb-img" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Carousel Pagination Controls */}
-          {allImages.length > 1 && (
-            <div className="premium-carousel-controls">
-              <div className="carousel-numbers">
-                {allImages.map((_, idx) => (
-                  <button
-                    key={idx}
-                    className={`carousel-num-btn ${idx === activeImageIndex ? 'active' : ''}`}
-                    onClick={() => setActiveImageIndex(idx)}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Side: Product Details */}
@@ -372,6 +408,40 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Custom spatial cart confirmation popup */}
+      {showCartPopup && addedItemDetails && (
+        <div className="cart-popup-overlay" onClick={() => setShowCartPopup(false)}>
+          <div className="cart-popup-card glass-panel animate-scale-up" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-popup-header">
+              <CheckCircle className="text-accent" size={24} />
+              <h3>Added to Cart!</h3>
+            </div>
+            
+            <div className="cart-popup-body">
+              <img src={addedItemDetails.image} alt={addedItemDetails.name} className="cart-popup-img" />
+              <div className="cart-popup-info">
+                <h4>{addedItemDetails.name}</h4>
+                <p>Size: <span>{addedItemDetails.size}</span></p>
+                <p>Color: <span>{addedItemDetails.color}</span></p>
+                <p>Qty: <span>{addedItemDetails.quantity}</span></p>
+                <p className="cart-popup-price">
+                  ₹{(Number(addedItemDetails.price) * (1 - addedItemDetails.discount_percent / 100) * addedItemDetails.quantity).toFixed(2)}
+                </p>
+              </div>
+            </div>
+            
+            <div className="cart-popup-actions">
+              <button className="btn-secondary" onClick={() => setShowCartPopup(false)}>
+                Continue
+              </button>
+              <button className="btn-primary" onClick={() => { setShowCartPopup(false); navigate('/checkout'); }}>
+                Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,16 +5,42 @@ import './Contact.css';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+  const [errors, setErrors] = useState({ email: '', phone: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    let hasError = false;
+    const newErrors = { email: '', phone: '' };
+
+    // 1. Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      newErrors.email = 'Please enter a valid email address (e.g. name@example.com).';
+      hasError = true;
+    }
+
+    // 2. Phone validation (Indian mobile number format: 10 digits, optional prefix +91 or 91)
+    const cleanedPhone = formData.phone.replace(/[\s\-()]/g, '');
+    const phoneRegex = /^(?:\+?91)?[6-9]\d{9}$/;
+    if (!phoneRegex.test(cleanedPhone)) {
+      newErrors.phone = 'Please enter a valid 10-digit mobile number, optionally starting with +91.';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsLoading(true);
     try {
       await submitContactQuery(formData);
       setIsSubmitted(true);
       setFormData({ name: '', email: '', phone: '', message: '' });
+      setErrors({ email: '', phone: '' });
       setTimeout(() => setIsSubmitted(false), 6000);
     } catch (err) {
       alert('Failed to send message. Please check your internet connection and try again.');
@@ -129,9 +155,13 @@ const Contact = () => {
                   id="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="futuristic-input"
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
+                  className={`futuristic-input ${errors.email ? 'input-error' : ''}`}
                 />
+                {errors.email && <span className="error-text">{errors.email}</span>}
               </div>
 
               <div className="form-group">
@@ -141,10 +171,14 @@ const Contact = () => {
                   id="phone"
                   required
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="futuristic-input"
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (errors.phone) setErrors({ ...errors, phone: '' });
+                  }}
+                  className={`futuristic-input ${errors.phone ? 'input-error' : ''}`}
                   placeholder="+91 XXXXX XXXXX"
                 />
+                {errors.phone && <span className="error-text">{errors.phone}</span>}
               </div>
 
               <div className="form-group">
