@@ -531,6 +531,12 @@
 .cat-arrow.left  { left: 0.5rem; }
 .cat-arrow.right { right: 0.5rem; }
 
+.cat-arrow.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .category-card {
   position: relative;
   border-radius: 16px;

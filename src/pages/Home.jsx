@@ -17,13 +17,54 @@ const Home = () => {
 
 
 
-  // Category scroll ref
+  // Category scroll ref and limit checks
   const catTrackRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScrollLimits = () => {
+    if (!catTrackRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = catTrackRef.current;
+    setCanScrollLeft(scrollLeft > 5);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+  };
+
+  useEffect(() => {
+    const track = catTrackRef.current;
+    if (!track) return;
+
+    checkScrollLimits();
+
+    track.addEventListener('scroll', checkScrollLimits);
+    window.addEventListener('resize', checkScrollLimits);
+
+    let resizeObserver;
+    if (window.ResizeObserver) {
+      resizeObserver = new ResizeObserver(() => {
+        checkScrollLimits();
+      });
+      resizeObserver.observe(track);
+    }
+
+    return () => {
+      track.removeEventListener('scroll', checkScrollLimits);
+      window.removeEventListener('resize', checkScrollLimits);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [categoryData]);
+
   const scrollCats = (dir) => {
     if (!catTrackRef.current) return;
-    const scrollAmount = catTrackRef.current.offsetWidth * 0.8;
-    catTrackRef.current.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
+    const track = catTrackRef.current;
+    const scrollAmount = track.offsetWidth * 0.8;
+    const targetScroll = track.scrollLeft + dir * scrollAmount;
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+    track.scrollTo({ left: clampedScroll, behavior: 'smooth' });
   };
+
 
   // Autoplay slider for discounted products
   useEffect(() => {
@@ -188,7 +229,11 @@ const Home = () => {
             </Link>
           </div>
           <div className="categories-slider-wrapper">
-            <button className="cat-arrow left" onClick={() => scrollCats(-1)} aria-label="Scroll categories left">
+            <button
+              className={`cat-arrow left ${canScrollLeft ? '' : 'hidden'}`}
+              onClick={() => scrollCats(-1)}
+              aria-label="Scroll categories left"
+            >
               &#8249;
             </button>
             <div className="categories-track" ref={catTrackRef}>
@@ -210,7 +255,11 @@ const Home = () => {
                 </Link>
               ))}
             </div>
-            <button className="cat-arrow right" onClick={() => scrollCats(1)} aria-label="Scroll categories right">
+            <button
+              className={`cat-arrow right ${canScrollRight ? '' : 'hidden'}`}
+              onClick={() => scrollCats(1)}
+              aria-label="Scroll categories right"
+            >
               &#8250;
             </button>
           </div>
