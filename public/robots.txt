@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /admin
+Disallow: /lookwalk-ops-portal
 Sitemap: https://lookwalk.in/sitemap.xml
