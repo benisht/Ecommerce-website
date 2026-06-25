@@ -527,9 +527,6 @@ const Admin = () => {
           <button className={`admin-nav-item ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')}>
             <Package size={20} /> <span>Inventory</span>
           </button>
-          <button className={`admin-nav-item ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
-            <List size={20} /> <span>Categories</span>
-          </button>
           <button className={`admin-nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
             <Truck size={20} /> <span>Orders</span>
             {activeShipments > 0 && <span className="nav-count warn">{activeShipments}</span>}
@@ -780,6 +777,37 @@ const Admin = () => {
                   </div>
                 </form>
               </div>
+
+              {/* Integrated Categories Management */}
+              <div className="admin-form-container glass-panel" style={{ marginTop: '2rem' }}>
+                <h2>Manage Categories</h2>
+                <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '1rem', marginTop: '1rem', marginBottom: '1.5rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Category name (e.g. Hoodies)"
+                    className="futuristic-input"
+                    style={{ flex: 1, padding: '0.6rem 1rem' }}
+                    value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="btn-primary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.85rem' }}>Add</button>
+                </form>
+
+                <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>Existing Categories ({categories.length})</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                  {categories.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>No categories found.</p>
+                  ) : (
+                    categories.map(cat => (
+                      <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid var(--glass-border)' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{cat}</span>
+                        <button type="button" onClick={() => handleDeleteCategory(cat)} className="icon-btn-small delete-btn" style={{ padding: '2px' }} title="Delete Category"><Trash2 size={14} /></button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="admin-list-container">
@@ -808,45 +836,6 @@ const Admin = () => {
                     </table>
                   )}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            TAB: CATEGORIES
-        ══════════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'categories' && (
-          <div style={{ maxWidth: '600px' }}>
-            <div className="glass-panel" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
-              <h2>Add New Category</h2>
-              <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <input
-                  type="text"
-                  placeholder="Category name (e.g. T-Shirts)"
-                  className="futuristic-input"
-                  style={{ flex: 1 }}
-                  value={newCategoryName}
-                  onChange={e => setNewCategoryName(e.target.value)}
-                  required
-                />
-                <button type="submit" className="btn-primary flex-center gap-1"><Plus size={18} /> Add</button>
-              </form>
-            </div>
-
-            <h2>Custom Categories ({categories.length})</h2>
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
-              {categories.length === 0 ? (
-                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem 0' }}>No categories found.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                  {categories.map(cat => (
-                    <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1.25rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                      <span style={{ fontWeight: 'bold' }}>{cat}</span>
-                      <button onClick={() => handleDeleteCategory(cat)} className="icon-btn-small delete-btn" title="Delete Category"><Trash2 size={16} /></button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         )}
