@@ -1,7 +1,3 @@
-const dns = require('dns');
-if (dns.setDefaultResultOrder) {
-  dns.setDefaultResultOrder('verbatim');
-}
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -11,14 +7,16 @@ if (!process.env.DATABASE_URL) {
 }
 
 // ── PostgreSQL Connection Pool ────────────────────────────────────────────────
+// Uses the Supabase session-mode pooler (IPv4, port 6543) to avoid ENETUNREACH
+// errors on Render's free tier which has no IPv6 routing.
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false // Required for Supabase/Render SSL
+    rejectUnauthorized: false // Required for Supabase / Render SSL
   },
-  max: 10,                  // Max connections in pool
-  idleTimeoutMillis: 30000, // Close idle connections after 30s
-  connectionTimeoutMillis: 10000 // Fail fast if can't connect in 10s
+  max: 10,                       // Max connections in pool
+  idleTimeoutMillis: 30000,      // Close idle connections after 30s
+  connectionTimeoutMillis: 10000 // Timeout connection attempt after 10s
 });
 
 // Log pool errors without crashing the server
@@ -31,17 +29,16 @@ const initDb = async () => {
   const fs = require('fs');
   const path = require('path');
   try {
-    // Test connection first
     await pgPool.query('SELECT 1');
     console.log('Database Status: Connected to Supabase PostgreSQL');
 
-    // Run schema — all tables use IF NOT EXISTS, so safe to run on every boot
+    // Run schema — all tables use IF NOT EXISTS, safe to run on every launch
     const schemaSql = fs.readFileSync(path.resolve(__dirname, 'server_schema.sql'), 'utf8');
     await pgPool.query(schemaSql);
     console.log('PostgreSQL schema verified and ready.');
   } catch (err) {
     console.error('Database initialization error:', err.message);
-    // Don't exit — let individual requests handle errors gracefully
+    // Don't exit — let individual request handlers surface errors
   }
 };
 
@@ -52,7 +49,7 @@ module.exports = {
   // Expose pool for transaction-heavy routes (orders.js uses db.pool.connect())
   pool: pgPool,
 
-  // Convenience query wrapper with RETURNING id support for INSERTs
+  // Query wrapper with RETURNING id support for INSERTs
   query: async (text, params = []) => {
     let sql = text;
     const upperSql = sql.trim().toUpperCase();
