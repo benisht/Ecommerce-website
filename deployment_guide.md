@@ -4,7 +4,7 @@ This guide walks you through launching the **LOOKWALK** storefront on a custom d
 
 - **Front‑end:** React + Vite hosted on **Vercel**.
 - **Back‑end:** Express + Node.js hosted on **Render** (or Railway).
-- **Database:** Single **PostgreSQL** instance (Supabase/Neon).
+- **Database:** Single **PostgreSQL** instance (**Supabase**).
 - **Security:** JWT authentication, bcrypt‑hashed admin password, Helmet, rate‑limiting.
 
 ---
@@ -23,9 +23,9 @@ Choose an ICANN‑accredited registrar (e.g., Namecheap, Cloudflare Registrar, H
 
 ## 2️⃣ Set Up a Free PostgreSQL Database
 
-We recommend **Supabase** or **Neon** for a managed PostgreSQL instance.
+We recommend **Supabase** for a managed PostgreSQL instance.
 
-1. Sign up at https://supabase.com (or https://neon.tech).
+1. Sign up at https://supabase.com.
 2. Create a new project → *Database*.
 3. Copy the connection string (starts with `postgresql://...`).
 4. Keep it handy – you’ll paste it into Render’s environment variables.

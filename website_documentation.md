@@ -1,7 +1,7 @@
 # LOOKWALK E‑Commerce Site Documentation
 
 ## Overview
-The **LOOKWALK** project is a modern React + Vite front‑end with an Express API back‑end backed by a single PostgreSQL database (hosted on Supabase/Neon). The architecture has been refactored to replace multiple storage solutions (localStorage, Firebase, SQLite) with a unified, secure data layer.
+The **LOOKWALK** project is a modern React + Vite front‑end with an Express API back‑end backed by a single PostgreSQL database (hosted on Supabase). The architecture has been refactored to replace multiple storage solutions (localStorage, Firebase, SQLite) with a unified, secure data layer.
 
 ---
 
