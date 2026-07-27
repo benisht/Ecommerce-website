@@ -324,6 +324,7 @@ const Admin = () => {
         alert('Product added successfully!');
       }
       loadProducts();
+      window.dispatchEvent(new Event('productsUpdated'));
       setIsEditing(false);
       setCurrentId(null);
       setFormData(initialForm);
@@ -364,6 +365,7 @@ const Admin = () => {
     try {
       await deleteProduct(id);
       loadProducts();
+      window.dispatchEvent(new Event('productsUpdated'));
     } catch (error) {
       alert('Failed to delete product.');
     }

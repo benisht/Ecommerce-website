@@ -30,6 +30,12 @@ const Products = () => {
 
   useEffect(() => {
     reloadProducts();
+    window.addEventListener('productsUpdated', reloadProducts);
+    window.addEventListener('focus', reloadProducts);
+    return () => {
+      window.removeEventListener('productsUpdated', reloadProducts);
+      window.removeEventListener('focus', reloadProducts);
+    };
   }, []);
 
   // Sync filter with URL category param

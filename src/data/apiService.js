@@ -15,6 +15,7 @@ const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
   const id = setTimeout(() => controller.abort(), timeout);
   try {
     const response = await fetch(url, { 
+      cache: 'no-store',
       ...options, 
       headers: getHeaders(options.headers),
       signal: controller.signal 

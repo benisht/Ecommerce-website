@@ -14,9 +14,17 @@
   border: 1.5px solid var(--glass-border);
 }
 
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(14, 165, 233, 0.18);
+@media (hover: hover) {
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(14, 165, 233, 0.18);
+  }
+  .product-card:hover .product-card-image {
+    transform: scale(1.04);
+  }
+}
+.product-card:active {
+  transform: scale(0.98);
 }
 
 /* ─── Image frame — restored to elegant 2/3 portrait size ──── */

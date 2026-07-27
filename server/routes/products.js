@@ -62,8 +62,8 @@ router.get('/', async (req, res) => {
       in_stock: Boolean(p.in_stock)
     }));
 
-    // Cache product list in browser for 60 seconds to speed up repeat visits
-    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    // Prevent browser caching so product updates reflect immediately
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json(products);
   } catch (err) {
     console.error('Fetch products error:', err);
@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
     product.variants = typeof product.variants === 'string' ? JSON.parse(product.variants) : (product.variants || []);
     product.images = typeof product.images === 'string' ? JSON.parse(product.images) : (product.images || []);
     product.in_stock = Boolean(product.in_stock);
-    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json(product);
   } catch (err) {
     console.error('Fetch product by ID error:', err);

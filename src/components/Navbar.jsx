@@ -256,18 +256,22 @@ const Navbar = () => {
         <ul className="mobile-nav-links">
           {navLinks.map((link) => (
             <li key={link.name}>
-              <Link to={link.path} className={location.pathname === link.path ? 'active' : ''}>
+              <Link
+                to={link.path}
+                className={location.pathname === link.path ? 'active' : ''}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 {link.name}
               </Link>
             </li>
           ))}
         </ul>
         <div className="mobile-nav-actions">
-          <Link to="/wishlist" className="icon-btn wishlist-btn" aria-label="Wishlist">
+          <Link to="/wishlist" className="icon-btn wishlist-btn" aria-label="Wishlist" onClick={() => setIsMobileMenuOpen(false)}>
             <Heart size={22} fill={wishlistCount > 0 ? '#ef4444' : 'none'} stroke={wishlistCount > 0 ? '#ef4444' : 'currentColor'} />
             {wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}
           </Link>
-          <Link to="/checkout" className="icon-btn cart-btn" aria-label="Cart">
+          <Link to="/checkout" className="icon-btn cart-btn" aria-label="Cart" onClick={() => setIsMobileMenuOpen(false)}>
             <ShoppingCart size={22} />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </Link>

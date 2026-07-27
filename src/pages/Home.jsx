@@ -124,6 +124,13 @@ const Home = () => {
       }
     };
     loadAll();
+
+    window.addEventListener('productsUpdated', loadAll);
+    window.addEventListener('focus', loadAll);
+    return () => {
+      window.removeEventListener('productsUpdated', loadAll);
+      window.removeEventListener('focus', loadAll);
+    };
   }, []);
 
 
