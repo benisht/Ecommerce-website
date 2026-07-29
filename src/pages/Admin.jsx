@@ -931,40 +931,42 @@ const Admin = () => {
                           <h4 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <ShieldCheck size={20} className="text-accent" /> ORDER MANAGEMENT SYSTEM
                           </h4>
-                          
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                            <div className="status-module-card glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Payment Control</span>
-                                <span className={`badge ${order.payment_status}`} style={{ fontSize: '0.7rem' }}>{(order.payment_status || 'PENDING').toUpperCase()}</span>
-                              </div>
-                              {order.payment_status !== 'received' ? (
-                                <button className="btn-primary" style={{ width: '100%', background: '#10b981', borderColor: '#10b981' }} onClick={() => handleOrderUpdate(order.id, 'payment_status', 'received')}><CheckCircle size={18} /> MARK AS PAID</button>
-                              ) : (
-                                <button className="btn-secondary" style={{ width: '100%', opacity: 0.6 }} onClick={() => handleOrderUpdate(order.id, 'payment_status', 'pending')}><Clock size={16} /> Revert to Pending</button>
-                              )}
-                            </div>
 
-                            <div className="status-module-card glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Delivery & Process Status</span>
-                                <span className={`badge ${order.delivery_status || 'pending'}`} style={{ fontSize: '0.7rem', background: statusColor(order.delivery_status) }}>{(order.delivery_status || 'PENDING').toUpperCase()}</span>
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <select 
-                                  className="futuristic-input" 
-                                  value={order.delivery_status || 'pending'} 
-                                  onChange={(e) => handleOrderUpdate(order.id, 'delivery_status', e.target.value)}
-                                  style={{ fontSize: '0.8rem', height: '36px' }}
-                                >
-                                  <option value="pending">Pending</option>
-                                  <option value="confirmed">Confirmed (Paid)</option>
-                                  <option value="packed">Packed</option>
-                                  <option value="shipped">Shipped</option>
-                                  <option value="delivered">Delivered (Closed)</option>
-                                  <option value="cancelled">Cancelled</option>
-                                </select>
-                              </div>
+                          {/* Payment status — read-only, set automatically by payment gateway */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Payment Status:</span>
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                              padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700,
+                              background: order.payment_status === 'received' ? '#10b98122' : '#f59e0b22',
+                              color: order.payment_status === 'received' ? '#10b981' : '#f59e0b',
+                              border: `1px solid ${order.payment_status === 'received' ? '#10b981' : '#f59e0b'}`
+                            }}>
+                              {order.payment_status === 'received' ? <CheckCircle size={13} /> : <Clock size={13} />}
+                              {order.payment_status === 'received' ? 'PAID (Auto-verified)' : 'PAYMENT PENDING'}
+                            </span>
+                          </div>
+
+                          {/* Delivery status — admin controlled */}
+                          <div className="status-module-card glass-panel" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Delivery &amp; Process Status</span>
+                              <span className={`badge ${order.delivery_status || 'pending'}`} style={{ fontSize: '0.7rem', background: statusColor(order.delivery_status) }}>{(order.delivery_status || 'PENDING').toUpperCase()}</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              <select
+                                className="futuristic-input"
+                                value={order.delivery_status || 'pending'}
+                                onChange={(e) => handleOrderUpdate(order.id, 'delivery_status', e.target.value)}
+                                style={{ fontSize: '0.85rem', height: '40px', width: '100%' }}
+                              >
+                                <option value="pending">⏳ Pending</option>
+                                <option value="confirmed">✅ Confirmed</option>
+                                <option value="packed">📦 Packed</option>
+                                <option value="shipped">🚚 Shipped</option>
+                                <option value="delivered">🎉 Delivered (Closed)</option>
+                                <option value="cancelled">❌ Cancelled</option>
+                              </select>
                             </div>
                           </div>
 

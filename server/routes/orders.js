@@ -182,7 +182,7 @@ router.get('/', authenticateToken, isAdmin, async (req, res) => {
   const { limit, offset } = req.query;
 
   try {
-    let sql = "SELECT * FROM orders WHERE payment_status = 'received' ORDER BY created_at DESC";
+    let sql = "SELECT * FROM orders ORDER BY created_at DESC";
     const params = [];
 
     if (limit) {
